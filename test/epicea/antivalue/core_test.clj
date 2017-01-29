@@ -94,3 +94,26 @@
 
 ))
 
+(defn add-safe-0 [a b]
+  (av/either (+ (av/expect number? a)
+                (av/expect number? b))
+             :bad-input))
+
+(defn add-safe-1 [a b]
+  (av/either
+   (let [anum (av/expect number? a)
+         bnum (av/expect number? b)]
+     (av/either (+ anum bnum)
+                [:bad-a (av/anti anum)]
+                [:bad-b (av/anti bnum)]))))
+    
+
+(deftest add-safe-test
+  (is (= 9 (add-safe-0 4 5)))
+  (is (= :bad-input (add-safe-0 4 nil)))
+  (is (= :bad-input (add-safe-0 :kattskit 5)))
+  (is (= 9 (add-safe-1 4 5)))
+  (is (= [:bad-a :a] (add-safe-1 :a 5)))
+  (is (= [:bad-b :b] (add-safe-1 4 :b)))
+
+)

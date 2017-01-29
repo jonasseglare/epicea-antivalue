@@ -6,4 +6,3 @@
   `(av/expect
     (fn [x#] (not (= ::spec/invalid x#)))
     (spec/conform ~sp ~x)))
-

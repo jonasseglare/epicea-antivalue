@@ -70,11 +70,16 @@
         ~on-true
         (throw (AntivalueException. ~on-false))))))
 
+(defn compile-let [deps args]
+  nil)
+
 (defn compile-seq-sub [deps form] 
   (let [f (first form)
+        sp (get special-forms f)
         args (rest form)]
     (cond
       (make-sym? f) (compile-make deps args)
+      (= :let sp) (compile-let deps args)
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]

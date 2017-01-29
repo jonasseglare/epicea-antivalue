@@ -41,5 +41,8 @@
              (fn [vals]
                `(:mjao ~@vals))
              [(av/undefined 3) (av/defined 4)])))
+    (is (= 18 (av/either (let [a 9] (+ a a)))))
+    (is (= 4 (av/either (let [a (av/make false 3 9)] a) 4)))
+    (is (= 9 (av/either (let [a (av/make true 3 1234) b (* a a)] b) 4)))
 ))
 

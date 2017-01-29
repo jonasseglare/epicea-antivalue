@@ -82,15 +82,19 @@
                       :catch-forms (spec/* ::catch-form)
                       :finally-form (spec/? ::finally-form)))
 
+;; Define in terms of 'either'
 (defmacro wrap [x]
-  `(either (tag/tag-success ~x)
-           (tag/tag-failure (anti ~x))))
+  `(try
+     (tag/tag-success ~x)
+     (catch AntivalueException e#
+       (tag/tag-failure (.state e#)))))
 
+;; Define in terms of 'either'
 (defn unwrap [x]
-  `(let [y# (tag/value x)]
-     (if (tag/success? x)
-       y
-       (anti y))))
+  (let [y (tag/value x)]
+    (if (tag/success? x)
+      y
+      (throw (AntivalueException. y)))))
 
 (def defined (tag/tag :defined))
 (def undefined (tag/tag :undefined))

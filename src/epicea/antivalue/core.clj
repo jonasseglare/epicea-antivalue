@@ -102,6 +102,7 @@
     ~expr))
 
 (def make ::make)
+(def anti ::anti)
 
 (defn evals-to-keyword [kwd]
   (fn [x]
@@ -112,6 +113,7 @@
         false))))
 
 (def make-sym? (evals-to-keyword ::make))
+;(def anti-sym? (evals-to-ke
 
 (def special-forms {'if :if ; OK
                     'do :do ;; OK

@@ -86,8 +86,6 @@ The ```expect``` macro tests if a function applied to a value is true and return
   * Whenever an antivalue occurs inside a let bounding form, instead of interupting the entire form as would have been the case with an exception, the antivalue is kept inside the bound symbol and only released once the bound symbol is evaluated.
   * There is only one type of antivalues. There is no type-based dispatch.
 
-FIXME
-
 ## License
 
 Copyright © 2017 FIXME

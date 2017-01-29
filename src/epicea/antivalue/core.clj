@@ -102,20 +102,20 @@
 
 (def make-sym? (evals-to-keyword ::make))
 
-(def special-forms {'if :if ;; OK
+(def special-forms {'if :if
                     'do :do ;; OK
                     'let* :let ;; OK
-                    'loop* :loop ;; OK
-                    'recur :recur ;; OK
-                    'throw :throw ;; OK
-                    'def :def ;; OK
-                    'var :var ;; OK
-                    'monitor-enter :monitor-enter ;; OK
-                    'monitor-exit :monitor-exit ;; OK
-                    'fn* :fn ;; OK
-                    'try :try ;; OK
-                    'catch :catch ;; OK
-                    'quote :quote ;; OK
+                    'loop* :loop
+                    'recur :recur
+                    'throw :throw
+                    'def :def
+                    'var :var
+                    'monitor-enter :monitor-enter
+                    'monitor-exit :monitor-exit
+                    'fn* :fn ;; !
+                    'try :try
+                    'catch :catch
+                    'quote :quote
                     })
 
 (defn error [& s]
@@ -164,18 +164,23 @@
    [deps []]
    bindings))
 
-(defn compile-let-sub [deps0 bindings0 forms]
+(defn compile-let-or-loop [p deps0 bindings0 forms]
   (let [[deps bindings] (compile-bindings deps0 bindings0)]
-    (println "BINDINGS: " bindings)
     (with-compiled [body (map (compile-sub deps) forms)]
-      `(let ~bindings
-         (do ~@body)))))
+      `(~p ~bindings
+        ~@body))))
 
 (defn compile-let [deps form]
   (let [f (spec/conform ::basic-let-form form)]
     (if (= f ::spec/invalid)
-      (error (spec/explain ::basic-let-form form))
-      (compile-let-sub deps (:bindings f) (:forms f)))))
+      (error (spec/explain  ::basic-let-form form))
+      (compile-let-or-loop `let deps (:bindings f) (:forms f)))))
+
+(defn compile-loop [deps form]
+  (let [f (spec/conform ::loop-form form)]
+    (if (= f ::spec/invalid)
+      (error (spec/explain ::loop-form form))
+      (compile-let-or-loop `loop (:bindings f) (:forms f)))))
 
 (defn compile-do [deps args]
   (with-compiled [a args]
@@ -189,6 +194,7 @@
       (make-sym? f) (compile-make deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
+      (= :loop sp) (compile-loop deps form)
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]

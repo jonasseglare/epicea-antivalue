@@ -70,12 +70,15 @@
         ~on-true
         (throw (AntivalueException. ~on-false))))))
 
-(defn compile-seq [deps form] 
+(defn compile-seq-sub [deps form] 
   (let [f (first form)
         args (rest form)]
     (cond
       (make-sym? f) (compile-make deps args)
       :default (compile-basic-seq deps form))))
+
+(defn compile-seq [deps form]
+  (compile-seq-sub deps (macroexpand form)))
 
 (defn compile-vector [deps form]
   (with-compiled [args (map (compile-sub deps) form)]

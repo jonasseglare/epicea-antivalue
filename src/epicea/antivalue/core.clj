@@ -1,4 +1,5 @@
 (ns epicea.antivalue.core
+  (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]))
 
 

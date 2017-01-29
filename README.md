@@ -61,22 +61,24 @@ evaluates to ```:a``` which is the first value.
 Expressions that produce antivalues can exist inside let-bindings, e.g.
 ```clojure        
 (defn my-add [a b]
-  (let [ax (if (number? a) a (anti a))
-        bx (if (number? b) b (anti b))]
-     (either (+ ax bx)
-             [:bad-input :a (anti ax)]
-             [:bad-input :b (anti bx)])))
+  (either
+   (let [ax (if (number? a) a (anti a))
+         bx (if (number? b) b (anti b))]
+      (either (+ ax bx)
+              [:bad-input :a (anti ax)]
+              [:bad-input :b (anti bx)]))))
 ```
-That is practical to identify the reason why we cant procede with a computation.
+That is practical to identify the reason why we cant procede with a computation. Note that there are two ```either```. The outer ```either``` is only needed for the code transformations.
 
 The ```expect``` macro tests if a function applied to a value is true and returns the value in that case, otherwise it produces an antivalue of that value. So the code here is equivalent to the above code.
 ```clojure
 (defn my-add [a b]
-  (let [ax (expect number? a)
-        bx (expect number? b)]
-    (either (+ ax bx)
-             [:bad-input :a (anti ax)]
-             [:bad-input :b (anti bx)])))
+  (either
+   (let [ax (expect number? a)
+         bx (expect number? b)]
+     (either (+ ax bx)
+              [:bad-input :a (anti ax)]
+              [:bad-input :b (anti bx)]))))
 ```
 
 ## Difference w.r.t exceptions

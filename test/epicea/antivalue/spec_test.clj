@@ -14,6 +14,8 @@
   (is (spec/valid? ::complex {:re 9 :im 20}))
   (is (not (spec/valid? ::complex {:re 9})))
   (is (= {:re 9 :im 20} (av/either (avspec/conform ::complex2 [9 20])
-                                   :bs))))
+                                   :bs)))
+  (is (= :bs (av/either (avspec/conform ::complex2 [9])
+                        :bs))))
 
 

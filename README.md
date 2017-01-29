@@ -61,22 +61,22 @@ evaluates to ```:a``` which is the first value.
 Expressions that produce antivalues can exist inside let-bindings, e.g.
 ```clojure        
 (defn my-add [a b]
-  (let [anum (if (number? a) a (anti a))
-        bnum (if (number? b) b (anti b))]
-     (either (+ a b)
-             [:bad-input :a (anti a)]
-             [:bad-input :b (anti b)])))
+  (let [ax (if (number? a) a (anti a))
+        bx (if (number? b) b (anti b))]
+     (either (+ ax bx)
+             [:bad-input :a (anti ax)]
+             [:bad-input :b (anti bx)])))
 ```
 That is practical to identify the reason why we cant procede with a computation.
 
 The ```expect``` macro tests if a function applied to a value is true and returns the value in that case, otherwise it produces an antivalue of that value. So the code here is equivalent to the above code.
 ```clojure
 (defn my-add [a b]
-  (let [anum (expect number? a)
-        bnum (expect number? b)]
-    (either (+ a b)
-             [:bad-input :a (anti a)]
-             [:bad-input :b (anti b)])))
+  (let [ax (expect number? a)
+        bx (expect number? b)]
+    (either (+ ax bx)
+             [:bad-input :a (anti ax)]
+             [:bad-input :b (anti bx)])))
 ```
 
 ## Difference w.r.t exceptions

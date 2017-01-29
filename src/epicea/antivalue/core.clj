@@ -75,7 +75,7 @@
 
 (defmacro wrap [x]
   `(try
-     (tag/tag-success x)
+     (tag/tag-success ~x)
      (catch AntivalueException e#
        (tag/tag-failure (.state e#)))))
 
@@ -161,10 +161,7 @@
     (if (defined? c)
       [(disj deps symbol)
        (into bindings [symbol v])]
-      (let [k `(try
-                 (tag/tag-success ~v)
-                 (catch AntivalueException e#
-                   (tag/tag-failure (.state e#))))]
+      (let [k `(wrap ~v)]
         [(conj deps symbol)
          (into bindings [symbol k])]))))
                                 

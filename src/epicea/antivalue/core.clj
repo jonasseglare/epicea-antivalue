@@ -89,7 +89,6 @@
 
 (defn compile-sub 
   ([deps form]
-   (println "Compile-sub on " form)
    ((cond
       (seq? form) compile-seq
       (vector? form) compile-vector

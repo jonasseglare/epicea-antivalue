@@ -6,15 +6,23 @@
 
 (deftest contextual-make
   ;; The call to 'av/make' should only work inside the 'av/either' macro
+  ;; These tests PASS
   (is (= 4 (av/either (av/make false 9 3) 4)))
   (is (= 9 (av/either (av/make true 9 3) 4)))
 
-  ;; But outside the 'av/either' macro, 'av/make' should be undefined.
+  ;; This test PASS
   (is (try
-        av/make
+        (eval 'av/symbol-that-is-unbound)
         false
-
-        (catch Throwable x
+        (catch Throwable e
+          true)))
+  
+  ;; But outside the 'av/either' macro, 'av/make' should be unbound.
+  ;; This test FAILS, but I don't want it to fail.
+  (is (try
+        (eval 'av/make)
+        false
+        (catch Throwable e
           true))))
 
 

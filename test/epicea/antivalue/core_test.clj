@@ -78,6 +78,18 @@
     (is (= 3 (av/either (av/expect number? 3) :a)))
     (is (= :a (av/either (av/expect number? :b) :a)))
     (is (= :a (av/either (av/expect number? :b (fn [k] [:not-a-number k])) :a)))
+    (is (= [:not-a-number :b]
+           (av/either
+            (let [a (av/expect number? :b (fn [k] [:not-a-number k]))]
+              (av/either a
+                         (av/anti a))))))
+
+    (is (= [:not-a-number :b]
+           (av/either
+            (let [a (av/expect number? :b)]
+              (av/either a
+                         [:not-a-number (av/anti a)])))))
+              
         
 
 ))

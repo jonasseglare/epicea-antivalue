@@ -3,6 +3,11 @@
   (:require [epicea.tag.core :as tag]
             [clojure.spec :as spec]))
 
+(defmacro dout [x]
+  `(let [x# ~x]
+     (println "############## " ~(str x) "=" x#)
+     x#))
+
 (spec/def ::if-sym #(= 'if %))
 (spec/def ::expr (constantly true))
 (spec/def ::if-form (spec/cat :if-sym ::if-sym
@@ -147,13 +152,14 @@
               ~(tag/value (compile-either deps (rest args))))))))
 
 (defn compile-anti [deps args]
-  (let [x (map (compile-sub deps) args)]
-    (if (defined? x)
-      `(throw (AntivalueException. ~(tag/value x)))
-      `(let [k# (wrap ~(tag/value x))]
-         (if (tag/success? k#)
-           (throw (AntivalueException. (tag/value k#)))
-           (tag/value k#))))))
+  (undefined
+   (let [x (map (compile-sub deps) args)]
+     (if (defined? x)
+       `(throw (AntivalueException. ~(tag/value x)))
+       `(let [k# (wrap ~(tag/value x))]
+          (if (tag/success? k#)
+            (throw (AntivalueException. (tag/value k#)))
+            (tag/value k#)))))))
     
 
 (defn compile-binding [[deps bindings] {:keys [symbol expr]}]
@@ -185,12 +191,6 @@
       (error (spec/explain  ::basic-let-form form))
       (compile-let-or-loop `let deps (:bindings f) (:forms f)))))
 
-(defn compile-loop [deps form]
-  (let [f (spec/conform ::loop-form form)]
-    (if (= f ::spec/invalid)
-      (error (spec/explain ::loop-form form))
-      (compile-let-or-loop `loop deps (:bindings f) (:forms f)))))
-
 (defn compile-do [deps args]
   (with-compiled [a (map (compile-sub deps) args)]
     `(do ~@a)))
@@ -217,7 +217,7 @@
     (cond
       (anti-sym? f) (compile-anti deps args)
       (= :do sp) (compile-do deps args)
-      (= :let sp) (compile-let deps form)
+      (= :let sp) (dout (compile-let deps form))
       (= :catch sp) (compile-catch deps form)
                                         ;(= :throw sp) (compile-throw deps args)
       (= :loop sp) (defined form)

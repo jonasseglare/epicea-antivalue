@@ -12,7 +12,7 @@
 
 (defn compile-pair [deps]
   (fn [pair]
-    (map (compile-sub deps) pair)))
+    (vec (map (compile-sub deps) pair))))
 
 (defn compile-map [deps form]
   (into {} (map (compile-pair deps) form)))

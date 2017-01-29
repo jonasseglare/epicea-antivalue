@@ -2,6 +2,19 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]))
 
+(def defined (tag/tag :defined))
+(def undefined (tag/tag :undefined))
+
+(def defined? (tag/tagged? :defined))
+(def undefined? (tag/tagged? :undefined))
+
+(defn with-compiled [f vals]
+  ((if (every? defined? vals)
+     defined undefined) 
+   (f (map tag/value vals))))
+      
+    
+
 (def make ::make)
 
 (defn evals-to-keyword [kwd]

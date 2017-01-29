@@ -29,5 +29,11 @@
     ;; The call to 'av/make' should only work inside the av/either macro
     (is (= 4 (av/either (av/make false 9 3) 4)))
     (is (= 9 (av/either (av/make true 9 3) 4)))
+
+    (let [k (av/with-compiled 
+              (fn [vals]
+                `(:mjao ~@vals))
+              [(av/defined 3) (av/defined 4)])]
+      (is (= [:defined '(:mjao 3 4)] k)))
 ))
 

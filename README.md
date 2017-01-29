@@ -13,6 +13,24 @@ Nevertheless, locally, exceptions can still be convenient to interupt control fl
 epicea/antivalues introduce *antivalues* that are similar to exceptions, but only work *locally* and not across function boundaries. Whenever a computation produces an antivalue, that computation is interupted. The antivalue produced inside a computation can then be either turned into a regular Clojure value using the ```anti``` form, or it can be ignored and another computation can continue instead, by using the ```either``` form. Furthermore, ```anti``` can also turn a regular clojure value into an ```anti```-value.
 
 ## Usage
+A regular Clojure value is just a value. The value of ```9``` is ```9```. To produce an antivalue, we use ```anti``` on the value:
+```clojure
+(anti 9)
+```
+This results in the *antivalue* of 9.
+
+Here is an expression that evaluates to 9:
+```
+(+ 4 5)
+```
+If we make one of the arguments an antivalue, the expression will evaluate to that antivalue, that is
+```
+(+ (anti 4) 5)
+```
+evaluates to ```(anti 4)```.
+
+
+
 
 
 

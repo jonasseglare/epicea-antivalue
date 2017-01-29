@@ -30,6 +30,8 @@
     (is (= 4 (av/either (av/condanti false 9 3) 4)))
     (is (= 9 (av/either (av/condanti true 9 3) 4)))
 
+    (is (= 9 (av/either (av/anti (av/anti 9)))))
+
     (let [k (av/fn-with-compiled 
               (fn [vals]
                 `(:mjao ~@vals))

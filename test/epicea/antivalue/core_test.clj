@@ -32,6 +32,8 @@
 
     (is (= 9 (av/either (av/anti (av/anti 9)))))
 
+    (is (= 4 (av/either (av/anti (+ (av/anti 4) 5)))))
+
     (let [k (av/fn-with-compiled 
               (fn [vals]
                 `(:mjao ~@vals))

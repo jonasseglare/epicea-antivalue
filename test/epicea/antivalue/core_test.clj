@@ -82,8 +82,6 @@
                       nil)
            [:success 9]))
 
-    (is (= [:failure 3] (av/wrap (av/anti 3))))
-
     (is (= 3 (av/either (av/expect number? 3) :a)))
     (is (= :a (av/either (av/expect number? :b) :a)))
     (is (= :a (av/either (av/expect number? :b (fn [k] [:not-a-number k])) :a)))

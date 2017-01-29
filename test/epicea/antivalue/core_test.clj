@@ -63,6 +63,9 @@
     (is (= 7 (av/either (av/anti (av/make false 9 7)) 8)))
     (is (= 8 (av/either (av/make false 9 7) 8)))
 
+    (is (= 9 (av/either (let [a (av/make false 7 9)]
+                          (av/either (av/anti a))))))
+
     (is (= (av/either (let [a (av/make false 9 7)]
                         (av/either [:failure (av/anti a)]
                                    [:success a]))

@@ -118,7 +118,6 @@
         false))))
 
 (def anti-sym? (evals-to-keyword ::anti))
-(def either-sym? (evals-to-keyword ::either-sub))
 
 (def special-forms {'if :if ; OK
                     'do :do ;; OK
@@ -144,6 +143,13 @@
 (defn compile-basic-seq [deps form]
   (with-compiled [cmp (map (compile-sub deps) form)]
     cmp))
+
+(defn either-sym? [x]
+  (try
+    (or (= 'either x)
+        (= `either x)
+        (= "either" (name x)))
+    (catch Throwable _ false)))
 
 (defn compile-either [deps args]
   (defined
@@ -221,7 +227,6 @@
         args (rest form)]
     (cond
       (anti-sym? f) (dout (compile-anti (dout deps) (dout args)))
-      (either-sym? f) (compile-either deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
       (= :catch sp) (compile-catch deps form)
@@ -232,7 +237,10 @@
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]
-  (compile-seq-sub deps (macroexpand form)))
+  (println "COMPILE SEQ with deps=" deps "and form=" form)
+  (if (either-sym? (first form))
+    (compile-either deps (rest form))
+    (compile-seq-sub deps (macroexpand form))))
 
 (defn compile-vector [deps form]
   (with-compiled [args (map (compile-sub deps) form)]
@@ -268,7 +276,8 @@
   ([deps] #(compile-sub deps %)))
 
 (defmacro either [& forms]
-  (tag/value (compile-sub #{} `(either-sub ~@forms))))
+  (println "-------------------EITHER MACRO INVOKED!!!")
+  (tag/value (compile-either #{} forms)))
 
 (defmacro expect 
   ([f? x g]

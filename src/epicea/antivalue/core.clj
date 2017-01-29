@@ -3,6 +3,15 @@
   (:require [epicea.tag.core :as tag]
             [clojure.spec :as spec]))
 
+(declare compile-sub)
+(def defined (tag/tag :defined))
+(def undefined (tag/tag :undefined))
+
+(def defined? (tag/tagged? :defined))
+(def undefined? (tag/tagged? :undefined))
+
+
+
 (defn error [& s]
   (throw (RuntimeException. (apply str s))))
 
@@ -82,25 +91,28 @@
                       :catch-forms (spec/* ::catch-form)
                       :finally-form (spec/? ::finally-form)))
 
-;; Define in terms of 'either'
+(defn compile-wrap [deps x]
+  (defined
+    (compile-sub 
+     deps
+     `(let [x# ~x]
+        `(either (tag/tag-success x#)
+                 (tag/tag-failure (anti x#)))))))
+
+;; TODO: Define in terms of 'either'
 (defmacro wrap [x]
   `(try
      (tag/tag-success ~x)
      (catch AntivalueException e#
        (tag/tag-failure (.state e#)))))
 
-;; Define in terms of 'either'
+;; TODO: Define in terms of 'either'
 (defn unwrap [x]
   (let [y (tag/value x)]
     (if (tag/success? x)
       y
       (throw (AntivalueException. y)))))
 
-(def defined (tag/tag :defined))
-(def undefined (tag/tag :undefined))
-
-(def defined? (tag/tagged? :defined))
-(def undefined? (tag/tagged? :undefined))
 
 (defn fn-with-compiled [f vals]
   ((if (every? defined? vals)
@@ -148,8 +160,6 @@
                     'quote :quote ;; OK
                     })
 
-(declare compile-sub)
-
 (defn compile-basic-seq [deps form]
   (with-compiled [cmp (map (compile-sub deps) form)]
     cmp))
@@ -171,7 +181,10 @@
    (let [x (compile-sub deps (first args))]
      (if (defined? x)
        `(throw (AntivalueException. ~(tag/value x)))
+
+       ;; TODO: Compile the wrapped expression with compile-sub
        `(let [k# (wrap ~(tag/value x))]
+
           (if (tag/success? k#)
             (throw (AntivalueException. (tag/value k#)))
             (tag/value k#)))))))
@@ -265,7 +278,10 @@
 
 (defn compile-primitive [deps form]
   (if (contains? deps form)
+
+;; TODO: Compile the unwrapped expression using compile-sub.
     (undefined `(unwrap ~form))
+
     (defined form)))
 
 (defn compile-sub 

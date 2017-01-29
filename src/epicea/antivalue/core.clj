@@ -101,7 +101,6 @@
     (fn [~sym] ~@body)
     ~expr))
 
-(def make ::make)
 (def anti ::anti)
 
 (defn evals-to-keyword [kwd]
@@ -112,8 +111,7 @@
       (catch Throwable e
         false))))
 
-(def make-sym? (evals-to-keyword ::make))
-;(def anti-sym? (evals-to-ke
+(def anti-sym? (evals-to-keyword ::anti))
 
 (def special-forms {'if :if ; OK
                     'do :do ;; OK
@@ -148,12 +146,15 @@
             (catch AntivalueException ~(gensym)
               ~(tag/value (compile-either deps (rest args))))))))
 
-(defn compile-make [deps args]
-  (let [[p on-true on-false] (map (comp tag/value (compile-sub deps)) args)]
-    (undefined
-     `(if ~p
-        ~on-true
-        (throw (AntivalueException. ~on-false))))))
+(defn compile-anti [deps args]
+  (let [x (map (compile-sub deps) args)]
+    (if (defined? x)
+      `(throw (AntivalueException. ~(tag/value x)))
+      `(let [k# (wrap ~(tag/value x))]
+         (if (tag/success? k#)
+           (throw (AntivalueException. (tag/value k#)))
+           (tag/value k#))))))
+    
 
 (defn compile-binding [[deps bindings] {:keys [symbol expr]}]
   (let [c (compile-sub deps expr)
@@ -214,7 +215,7 @@
         sp (get special-forms f)
         args (rest form)]
     (cond
-      (make-sym? f) (compile-make deps args)
+      (anti-sym? f) (compile-anti deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
       (= :catch sp) (compile-catch deps form)
@@ -262,15 +263,12 @@
 (defmacro either [& forms]
   (tag/value (compile-either #{} forms)))
 
-(defmacro anti [x]  
-  `(let [k# (wrap ~x)]
-     (if (tag/success? k#)
-       (throw (AntivalueException. (tag/value k#)))
-       (tag/value k#))))
-
 (defmacro expect 
   ([f? x g]
    `(let [x# ~x]
       (make (~f? x#) x# (~g x#))))
   ([f? x]
    `(expect ~f? ~x identity)))
+
+(defmacro make [p a b]
+  `(if ~p ~a (anti ~b)))

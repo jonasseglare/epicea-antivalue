@@ -12,7 +12,10 @@
       (catch Throwable e
         false))))
 
+;; Function to test if we are referring to a symbol 'make' in the namespace of this file.
 (def make-sym? (evals-to-keyword ::make))
+
+;; http://stackoverflow.com/questions/40270625/when-to-use-some-symbol-in-clojure-macro
 
 (def special-forms {'if :if ;; OK
                     'do :do ;; OK

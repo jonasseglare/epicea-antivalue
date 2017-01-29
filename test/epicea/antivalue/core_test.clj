@@ -10,7 +10,7 @@
   (is (= 4 (av/either (av/make false 9 3) 4)))
   (is (= 9 (av/either (av/make true 9 3) 4)))
 
-  ;; This test PASS
+  ;; This test PASSES
   (is (try
         (eval 'av/symbol-that-is-unbound)
         false

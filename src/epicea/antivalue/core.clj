@@ -8,12 +8,15 @@
 (def defined? (tag/tagged? :defined))
 (def undefined? (tag/tagged? :undefined))
 
-(defn with-compiled [f vals]
+(defn fn-with-compiled [f vals]
   ((if (every? defined? vals)
      defined undefined) 
    (f (map tag/value vals))))
-      
-    
+
+(defmacro with-compiled [[sym expr] & body]
+  `(fn-with-compiled 
+    (fn [~sym] ~@body)
+    ~expr))
 
 (def make ::make)
 
@@ -49,19 +52,23 @@
 (declare compile-sub)
 
 (defn compile-basic-seq [deps form]
-  (map (compile-sub deps) form))
+  (with-compiled [cmp (map (compile-sub deps) form)]
+    cmp))
 
 (defn compile-either [deps args]
-  (if (empty? args)
-    nil
-    `(try ~(compile-sub deps (first args))
-          (catch AntivalueException ~(gensym)
-            ~(compile-either deps (rest args))))))
+  (defined
+    (if (empty? args) 
+      nil
+      `(try ~(tag/value (compile-sub deps (first args)))
+            (catch AntivalueException ~(gensym)
+              ~(tag/value (compile-either deps (rest args))))))))
 
-(defn compile-make [deps [p on-true on-false]]
-  `(if ~(compile-sub deps p) 
-     ~(compile-sub deps on-true)
-     (throw (AntivalueException. ~(compile-sub deps on-false)))))
+(defn compile-make [deps args]
+  (let [[p on-true on-false] (map (comp tag/value (compile-sub deps)) args)]
+    (undefined
+     `(if ~p
+        ~on-true
+        (throw (AntivalueException. ~on-false))))))
 
 (defn compile-seq [deps form] 
   (let [f (first form)
@@ -71,17 +78,21 @@
       :default (compile-basic-seq deps form))))
 
 (defn compile-vector [deps form]
-  (into [] (map (compile-sub deps) form)))
+  (with-compiled [args (map (compile-sub deps) form)]
+    (into [] args)))
 
 (defn compile-pair [deps]
   (fn [pair]
-    (vec (map (compile-sub deps) pair))))
+    (with-compiled [args (map (compile-sub deps) pair)]
+      (vec args))))
 
 (defn compile-map [deps form]
-  (into {} (map (compile-pair deps) form)))
+  (with-compiled [args (map (compile-pair deps) form)]
+    (into {} args)))
 
 (defn compile-set [deps form]
-  (into #{} (map (compile-sub deps) form)))
+  (with-compiled [args (map (compile-sub deps) form)]
+    (into #{} args)))
 
 (defn unwrap-dep-value [x]  
   (let [y (tag/value x)]
@@ -91,8 +102,8 @@
   
 (defn compile-primitive [deps form]
   (if (contains? deps form)
-    `(unwrap-dep-value ~form)
-    form))
+    (undefined `(unwrap-dep-value ~form))
+    (defined form)))
 
 (defn compile-sub 
   ([deps form]
@@ -105,4 +116,4 @@
   ([deps] #(compile-sub deps %)))
 
 (defmacro either [& forms]
-  (compile-either #{} forms))
+  (tag/value (compile-either #{} forms)))

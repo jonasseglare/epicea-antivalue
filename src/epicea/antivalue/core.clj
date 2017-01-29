@@ -153,15 +153,7 @@
     cmp))
 
 (defn either-sym? [x]
-  (try
-    (when (or (= 'either x)
-              (= `either x)
-              (= "either" (name x)))
-      (println "Either: " (meta (resolve x)))
-      (println "True?" (= (resolve `either)
-                          (resolve x)))
-      true)
-    (catch Throwable _ false)))
+  (compare-symbols `either x))
 
 (defn compile-either [deps args]
   (defined

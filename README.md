@@ -51,15 +51,38 @@ evaluates to ```4```, and
 (either (anti (+ (anti 4) 5)))
 ```
 evaluates to ```4```, too.
-        
 
+```either```, can have several branches and each branch is visited in order until we encounter a branch with a value that is not an antivalue, for instance
+```clojure
+(either (anti 4) (anti 5) :a :b :c (anti 6) :d)
+```
+evaluates to ```:a``` which is the first value.
 
+Expressions that produce antivalues can exist inside let-bindings, e.g.
+```clojure        
+(defn my-add [a b]
+  (let [anum (if (number? a) a (anti a))
+        bnum (if (number? b) b (anti b))]
+     (either (+ a b)
+             [:bad-input :a (anti a)]
+             [:bad-input :b (anti b)])))
+```
+That is practical to identify the reason why we cant procede with a computation.
 
-
+The ```expect``` macro tests if a function applied to a value is true and returns the value in that case, otherwise it produces an antivalue of that value. So the code here is equivalent to the above code.
+```clojure
+(defn my-add [a b]
+  (let [anum (expect number? a)
+        bnum (expect number? b)]
+    (either (+ a b)
+             [:bad-input :a (anti a)]
+             [:bad-input :b (anti b)])))
+```
 
 ## Difference w.r.t exceptions
 
-  * Unlike exceptions, antivalues are local. An antivalue produced inside a function cannot leak outside that function.
+  * Unlike exceptions, antivalues are local. An antivalue produced inside a function cannot leak outside that function. This includes lambda functions.
+  * Also, antivalues currently don't work with loops.
   * Whenever an antivalue occurs inside a let bounding form, instead of interupting the entire form as would have been the case with an exception, the antivalue is kept inside the bound symbol and only released once the bound symbol is evaluated.
   * There is only one type of antivalues. There is no type-based dispatch.
 

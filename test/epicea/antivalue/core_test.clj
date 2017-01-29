@@ -4,6 +4,21 @@
             [epicea.tag.core :as tag]
             [epicea.antivalue.core :as av]))
 
+(deftest contextual-make
+  ;; The call to 'av/make' should only work inside the av/either macro
+  (is (= 4 (av/either (av/make false 9 3) 4)))
+  (is (= 9 (av/either (av/make true 9 3) 4)))
+
+  ;; But outside the av/either macro, 'av/make' should be undefined.
+  (is (try
+        av/make
+        false
+
+        (catch Throwable x
+          true))))
+
+
+
 (defmacro compiles-identically [x]
   `(is (= ~x (av/compile-sub #{} ~x))))
 

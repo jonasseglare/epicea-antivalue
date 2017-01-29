@@ -180,7 +180,7 @@
   (let [f (spec/conform ::loop-form form)]
     (if (= f ::spec/invalid)
       (error (spec/explain ::loop-form form))
-      (compile-let-or-loop `loop (:bindings f) (:forms f)))))
+      (compile-let-or-loop `loop deps (:bindings f) (:forms f)))))
 
 (defn compile-do [deps args]
   (with-compiled [a args]
@@ -194,7 +194,8 @@
       (make-sym? f) (compile-make deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
-      (= :loop sp) (compile-loop deps form)
+      (= :loop sp) (defined form)
+      (= :quote sp) (defined form)
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]

@@ -44,5 +44,16 @@
     (is (= 18 (av/either (let [a 9] (+ a a)))))
     (is (= 4 (av/either (let [a (av/make false 3 9)] a) 4)))
     (is (= 9 (av/either (let [a (av/make true 3 1234) b (* a a)] b) 4)))
+
+    ;; Loops are currently not compiled
+    (is (= 10 (av/either (loop [sum 0
+                                i 4]
+                           (if (= i 0)
+                             sum
+                             (recur (+ sum i) (- i 1)))))))
+
+    (is (= 129 (av/either (if (av/make false true true) 9 19) 129)))
+    (is (= 129 (av/either (if true (av/make false true true) 19) 129)))
+    (is (= 9 (av/either (if true 9 (av/make false true true)) 129)))
 ))
 

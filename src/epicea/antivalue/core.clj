@@ -107,6 +107,7 @@
     ~expr))
 
 (def anti ::anti)
+(def either-sub ::either-sub)
 
 (defn evals-to-keyword [kwd]
   (fn [x]
@@ -117,6 +118,7 @@
         false))))
 
 (def anti-sym? (evals-to-keyword ::anti))
+(def either-sym? (evals-to-keyword ::either-sub))
 
 (def special-forms {'if :if ; OK
                     'do :do ;; OK
@@ -152,8 +154,9 @@
               ~(tag/value (compile-either deps (rest args))))))))
 
 (defn compile-anti [deps args]
+  (assert (= 1 (count args)))
   (undefined
-   (let [x (map (compile-sub deps) args)]
+   (let [x (compile-sub deps (first args))]
      (if (defined? x)
        `(throw (AntivalueException. ~(tag/value x)))
        `(let [k# (wrap ~(tag/value x))]
@@ -165,6 +168,7 @@
 (defn compile-binding [[deps bindings] {:keys [symbol expr]}]
   (let [c (compile-sub deps expr)
         v (tag/value c)]
+    (println "COMPILE BINDING FOR" expr "->" c)
     (if (defined? c)
       [(disj deps symbol)
        (into bindings [symbol v])]
@@ -182,6 +186,7 @@
 (defn compile-let-or-loop [p deps0 bindings0 forms]
   (let [[deps bindings] (compile-bindings deps0 bindings0)]
     (with-compiled [body (map (compile-sub deps) forms)]
+      (dout body)
       `(~p ~bindings
         ~@body))))
 
@@ -215,9 +220,10 @@
         sp (get special-forms f)
         args (rest form)]
     (cond
-      (anti-sym? f) (compile-anti deps args)
+      (anti-sym? f) (dout (compile-anti (dout deps) (dout args)))
+      (either-sym? f) (compile-either deps args)
       (= :do sp) (compile-do deps args)
-      (= :let sp) (dout (compile-let deps form))
+      (= :let sp) (compile-let deps form)
       (= :catch sp) (compile-catch deps form)
                                         ;(= :throw sp) (compile-throw deps args)
       (= :loop sp) (defined form)
@@ -252,6 +258,7 @@
 
 (defn compile-sub 
   ([deps form]
+   (println "COMPILE-SUB on" form "with deps=" deps)
    ((cond
       (seq? form) compile-seq
       (vector? form) compile-vector
@@ -261,7 +268,7 @@
   ([deps] #(compile-sub deps %)))
 
 (defmacro either [& forms]
-  (tag/value (compile-either #{} forms)))
+  (tag/value (compile-sub #{} `(either-sub ~@forms))))
 
 (defmacro expect 
   ([f? x g]

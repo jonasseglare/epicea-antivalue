@@ -56,5 +56,7 @@
     (is (= 129 (av/either (if true (av/make false true true) 19) 129)))
     (is (= 9 (av/either (if true 9 (av/make false true true)) 129)))
     (is (= '(av/make 3) (av/either '(av/make 3) 9)))
+    (is (= 120 (av/either (throw (av/make false 3 4))
+                          120)))
 ))
 

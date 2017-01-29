@@ -73,6 +73,19 @@
                       :catch-forms (spec/* ::catch-form)
                       :finally-form (spec/? ::finally-form)))
 
+(defmacro wrap [x]
+  `(try
+     (tag/tag-success x)
+     (catch AntivalueException e#
+       (tag/tag-failure (.state e#)))))
+
+(defn unwrap [x]
+  (let [y (tag/value x)]
+    (if (tag/success? x)
+      y
+      (throw (AntivalueException. y)))))
+
+  
 
 (def defined (tag/tag :defined))
 (def undefined (tag/tag :undefined))
@@ -102,20 +115,20 @@
 
 (def make-sym? (evals-to-keyword ::make))
 
-(def special-forms {'if :if
+(def special-forms {'if :if ; OK
                     'do :do ;; OK
                     'let* :let ;; OK
-                    'loop* :loop
-                    'recur :recur
-                    'throw :throw
-                    'def :def
-                    'var :var
+                    'loop* :loop ;; OK
+                    'recur :recur ;; OK
+                    'throw :throw ;; OK
+                    'def :def ;; ?
+                    'var :var ;; ?
                     'monitor-enter :monitor-enter
                     'monitor-exit :monitor-exit
-                    'fn* :fn ;; !
-                    'try :try
-                    'catch :catch
-                    'quote :quote
+                    'fn* :fn ;; OK
+                    'try :try ;; OK
+                    'catch :catch ;; !
+                    'quote :quote ;; OK
                     })
 
 (defn error [& s]
@@ -143,7 +156,6 @@
         (throw (AntivalueException. ~on-false))))))
 
 (defn compile-binding [[deps bindings] {:keys [symbol expr]}]
-  (println "Compile binding")
   (let [c (compile-sub deps expr)
         v (tag/value c)]
     (if (defined? c)
@@ -153,7 +165,6 @@
                  (tag/tag-success ~v)
                  (catch AntivalueException e#
                    (tag/tag-failure (.state e#))))]
-        (println "k = " k)
         [(conj deps symbol)
          (into bindings [symbol k])]))))
                                 
@@ -196,6 +207,7 @@
       (= :let sp) (compile-let deps form)
       (= :loop sp) (defined form)
       (= :quote sp) (defined form)
+      (= :fn sp) (defined form)
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]
@@ -219,10 +231,7 @@
     (into #{} args)))
 
 (defn unwrap-dep-value [x]  
-  (let [y (tag/value x)]
-    (if (tag/success? x)
-      y
-      (throw (AntivalueException. y)))))
+  (unwrap x))
   
 (defn compile-primitive [deps form]
   (if (contains? deps form)

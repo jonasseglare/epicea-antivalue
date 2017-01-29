@@ -279,12 +279,13 @@
 (defmacro either [& forms]
   (tag/value (compile-either #{} forms)))
 
+(defmacro condanti [p a b]
+  `(if ~p ~a (anti ~b)))
+
 (defmacro expect 
   ([f? x g]
    `(let [x# ~x]
-      (make (~f? x#) x# (~g x#))))
+      (condanti (~f? x#) x# (~g x#))))
   ([f? x]
    `(expect ~f? ~x identity)))
 
-(defmacro make [p a b]
-  `(if ~p ~a (anti ~b)))

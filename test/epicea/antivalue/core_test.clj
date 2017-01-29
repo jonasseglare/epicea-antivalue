@@ -74,6 +74,9 @@
                                    [:success a]))
                       nil)
            [:success 9]))
+
+    (is (= 3 (av/either (av/expect number? 3) :a)))
+    (is (= :a (av/either (av/expect number? :b) :a)))
         
 
 ))

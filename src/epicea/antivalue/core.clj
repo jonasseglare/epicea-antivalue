@@ -193,11 +193,9 @@
     `(do ~@a)))
 
 (defn compile-catch-sub [deps f]
-  (let [c (with-compiled [body (map (compile-sub deps) (:forms f))]
-            `(catch ~(:type f) ~(:var-name f)
-               ~@body))]
-    (println c)
-    c))
+  (with-compiled [body (map (compile-sub deps) (:forms f))]
+    `(catch ~(:type f) ~(:var-name f)
+       ~@body)))
 
 (defn compile-catch [deps form]
   (let [f (spec/conform ::catch-form form)]
@@ -212,19 +210,17 @@
 (defn compile-seq-sub [deps form] 
   (let [f (first form)
         sp (get special-forms f)
-        args (rest form)
-        result (cond
-                 (make-sym? f) (compile-make deps args)
-                 (= :do sp) (compile-do deps args)
-                 (= :let sp) (compile-let deps form)
-                 (= :catch sp) (compile-catch deps form)
-                 ;(= :throw sp) (compile-throw deps args)
-                 (= :loop sp) (defined form)
-                 (= :quote sp) (defined form)
-                 (= :fn sp) (defined form)
-                 :default (compile-basic-seq deps form))]
-    ;(println "###### " form "->" result)
-    result))
+        args (rest form)]
+    (cond
+      (make-sym? f) (compile-make deps args)
+      (= :do sp) (compile-do deps args)
+      (= :let sp) (compile-let deps form)
+      (= :catch sp) (compile-catch deps form)
+                                        ;(= :throw sp) (compile-throw deps args)
+      (= :loop sp) (defined form)
+      (= :quote sp) (defined form)
+      (= :fn sp) (defined form)
+      :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]
   (compile-seq-sub deps (macroexpand form)))
@@ -269,3 +265,10 @@
      (if (tag/success? k#)
        (throw (AntivalueException. (tag/value k#)))
        (tag/value k#))))
+
+(defmacro expect 
+  ([f? x g]
+   `(let [x# ~x]
+      (make (~f? x#) x# (~g x#))))
+  ([f? x]
+   `(expect ~f? ~x identity)))

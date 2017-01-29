@@ -83,16 +83,14 @@
                       :finally-form (spec/? ::finally-form)))
 
 (defmacro wrap [x]
-  `(try
-     (tag/tag-success ~x)
-     (catch AntivalueException e#
-       (tag/tag-failure (.state e#)))))
+  `(either (tag/tag-success ~x)
+           (tag/tag-failure (anti ~x))))
 
 (defn unwrap [x]
-  (let [y (tag/value x)]
-    (if (tag/success? x)
-      y
-      (throw (AntivalueException. y)))))
+  `(let [y# (tag/value x)]
+     (if (tag/success? x)
+       y
+       (anti y))))
 
 (def defined (tag/tag :defined))
 (def undefined (tag/tag :undefined))

@@ -16,7 +16,7 @@
     (compiles-identically #{1 :a 3})
     (compiles-identically {:a 3 :b 4})
     (compiles-identically '(1 :a 3))
-    (is (= 9 (av/unwrap-dep-value (tag/tag-success 9))))
+    (is (= 9 (av/unwrap (tag/tag-success 9))))
     (try
       (av/unwrap-dep-value (tag/tag-failure 9))
       (is false)
@@ -58,5 +58,23 @@
     (is (= '(av/make 3) (av/either '(av/make 3) 9)))
     (is (= 120 (av/either (throw (av/make false 3 4))
                           120)))
+
+    (is (= 119 (av/either (try (assert false) (catch Throwable a 119)) 120)))
+    (is (= 7 (av/either (av/anti (av/make false 9 7)) 8)))
+    (is (= 8 (av/either (av/make false 9 7) 8)))
+
+    (is (= (av/either (let [a (av/make false 9 7)]
+                        (av/either [:failure (av/anti a)]
+                                   [:success a]))
+                      nil)
+           [:failure 7]))
+
+    (is (= (av/either (let [a (av/make true 9 7)]
+                        (av/either [:failure (av/anti a)]
+                                   [:success a]))
+                      nil)
+           [:success 9]))
+        
+
 ))
 

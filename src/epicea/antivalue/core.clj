@@ -146,9 +146,13 @@
 
 (defn either-sym? [x]
   (try
-    (or (= 'either x)
-        (= `either x)
-        (= "either" (name x)))
+    (when (or (= 'either x)
+              (= `either x)
+              (= "either" (name x)))
+      (println "Either: " (meta (resolve x)))
+      (println "True?" (= (resolve `either)
+                          (resolve x)))
+      true)
     (catch Throwable _ false)))
 
 (defn compile-either [deps args]
@@ -174,7 +178,6 @@
 (defn compile-binding [[deps bindings] {:keys [symbol expr]}]
   (let [c (compile-sub deps expr)
         v (tag/value c)]
-    (println "COMPILE BINDING FOR" expr "->" c)
     (if (defined? c)
       [(disj deps symbol)
        (into bindings [symbol v])]
@@ -192,7 +195,6 @@
 (defn compile-let-or-loop [p deps0 bindings0 forms]
   (let [[deps bindings] (compile-bindings deps0 bindings0)]
     (with-compiled [body (map (compile-sub deps) forms)]
-      (dout body)
       `(~p ~bindings
         ~@body))))
 
@@ -226,7 +228,7 @@
         sp (get special-forms f)
         args (rest form)]
     (cond
-      (anti-sym? f) (dout (compile-anti (dout deps) (dout args)))
+      (anti-sym? f) (compile-anti deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
       (= :catch sp) (compile-catch deps form)
@@ -237,7 +239,6 @@
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]
-  (println "COMPILE SEQ with deps=" deps "and form=" form)
   (if (either-sym? (first form))
     (compile-either deps (rest form))
     (compile-seq-sub deps (macroexpand form))))
@@ -266,7 +267,6 @@
 
 (defn compile-sub 
   ([deps form]
-   ;(println "COMPILE-SUB on" form "with deps=" deps)
    ((cond
       (seq? form) compile-seq
       (vector? form) compile-vector
@@ -276,7 +276,6 @@
   ([deps] #(compile-sub deps %)))
 
 (defmacro either [& forms]
-  (println "-------------------EITHER MACRO INVOKED!!!")
   (tag/value (compile-either #{} forms)))
 
 (defmacro expect 

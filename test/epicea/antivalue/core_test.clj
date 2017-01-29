@@ -23,9 +23,10 @@
       (catch AntivalueException e
         (is (= 9 (.state e)))))
     (is (av/compile-sub #{'a} 'a))
-    (is (av/katt? av/katt))
 
     (is (= 3 (av/either 3 9)))
+
+    ;; The call to 'av/make' should only work inside the av/either macro
     (is (= 4 (av/either (av/make false 9 3) 4)))
     (is (= 9 (av/either (av/make true 9 3) 4)))
 ))

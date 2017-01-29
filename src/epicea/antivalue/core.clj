@@ -2,10 +2,7 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]))
 
-(declare make)
-
 (def make ::make)
-(def katt ::katt)
 
 (defn evals-to-keyword [kwd]
   (fn [x]
@@ -14,9 +11,6 @@
            (= kwd (eval x)))
       (catch Throwable e
         false))))
-
-(defmacro katt? [x]
-  (= ::katt (eval x)))
 
 (def make-sym? (evals-to-keyword ::make))
 

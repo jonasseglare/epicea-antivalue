@@ -2,15 +2,23 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]))
 
-(defn either-sym? [f]
-  (or (= 'either f)
-      (= `either f)))
-
 (declare make)
 
-(defn make-sym? [f]
-  (or (= 'make f) 
-      (= `make f)))
+(def make ::make)
+(def katt ::katt)
+
+(defn evals-to-keyword [kwd]
+  (fn [x]
+    (try
+      (and (symbol? x)
+           (= kwd (eval x)))
+      (catch Throwable e
+        false))))
+
+(defmacro katt? [x]
+  (= ::katt (eval x)))
+
+(def make-sym? (evals-to-keyword ::make))
 
 (def special-forms {'if :if ;; OK
                     'do :do ;; OK
@@ -31,14 +39,12 @@
 (defn error [& s]
   (throw (RuntimeException. (apply str s))))
 
-
 (declare compile-sub)
 
 (defn compile-basic-seq [deps form]
   (map (compile-sub deps) form))
 
 (defn compile-either [deps args]
-  (println "Compile either")
   (if (empty? args)
     nil
     `(try ~(compile-sub deps (first args))
@@ -54,7 +60,6 @@
   (let [f (first form)
         args (rest form)]
     (cond
-      (either-sym? f) (compile-either deps args)
       (make-sym? f) (compile-make deps args)
       :default (compile-basic-seq deps form))))
 
@@ -84,6 +89,7 @@
 
 (defn compile-sub 
   ([deps form]
+   (println "Compile-sub on " form)
    ((cond
       (seq? form) compile-seq
       (vector? form) compile-vector
@@ -92,5 +98,5 @@
       :default compile-primitive) deps form))
   ([deps] #(compile-sub deps %)))
 
-(defmacro either [& form]
-  (compile-sub #{} `(either ~@form)))
+(defmacro either [& forms]
+  (compile-either #{} forms))

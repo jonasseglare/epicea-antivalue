@@ -2,10 +2,10 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [clojure.test :refer :all]
             [epicea.tag.core :as tag]
-            [epicea.antivalue.core :refer :all]))
+            [epicea.antivalue.core :as av]))
 
 (defmacro compiles-identically [x]
-  `(is (= ~x (compile-sub #{} ~x))))
+  `(is (= ~x (av/compile-sub #{} ~x))))
 
 (deftest a-test
   (testing "FIXME, I fail."
@@ -16,13 +16,17 @@
     (compiles-identically #{1 :a 3})
     (compiles-identically {:a 3 :b 4})
     (compiles-identically '(1 :a 3))
-    (is (= 9 (unwrap-dep-value (tag/tag-success 9))))
+    (is (= 9 (av/unwrap-dep-value (tag/tag-success 9))))
     (try
-      (unwrap-dep-value (tag/tag-failure 9))
+      (av/unwrap-dep-value (tag/tag-failure 9))
       (is false)
       (catch AntivalueException e
         (is (= 9 (.state e)))))
-    (is (compile-sub #{'a} 'a))
-    (is (= 3 (either 3 9)))
-    (is (= 4 (either (make false 9 3) 4)))
-    (is (= 9 (either (make true 9 3) 4)))))
+    (is (av/compile-sub #{'a} 'a))
+    (is (av/katt? av/katt))
+
+    (is (= 3 (av/either 3 9)))
+    (is (= 4 (av/either (av/make false 9 3) 4)))
+    (is (= 9 (av/either (av/make true 9 3) 4)))
+))
+

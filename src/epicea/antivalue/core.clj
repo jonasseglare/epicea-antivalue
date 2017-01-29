@@ -3,6 +3,10 @@
   (:require [epicea.tag.core :as tag]
             [clojure.spec :as spec]))
 
+(defn error [& s]
+  (throw (RuntimeException. (apply str s))))
+
+
 (defmacro dout [x]
   `(let [x# ~x]
      (println "############## " ~(str x) "=" x#)
@@ -106,8 +110,8 @@
     (fn [~sym] ~@body)
     ~expr))
 
-(def anti ::anti)
-(def either-sub ::either-sub)
+(defmacro anti [& forms]
+  (error (str "'anti' must be wrapped inside 'either'. You tried to invoke it outside of 'either' on these forms: " forms)))
 
 (defn evals-to-keyword [kwd]
   (fn [x]
@@ -117,7 +121,14 @@
       (catch Throwable e
         false))))
 
-(def anti-sym? (evals-to-keyword ::anti))
+(defn compare-symbols [a b]
+  (try
+    (= (resolve a)
+       (resolve b))
+    (catch Throwable _ false)))
+
+(defn anti-sym? [x]
+  (compare-symbols `anti x))
 
 (def special-forms {'if :if ; OK
                     'do :do ;; OK
@@ -134,9 +145,6 @@
                     'catch :catch ;; OK
                     'quote :quote ;; OK
                     })
-
-(defn error [& s]
-  (throw (RuntimeException. (apply str s))))
 
 (declare compile-sub)
 
@@ -228,7 +236,6 @@
         sp (get special-forms f)
         args (rest form)]
     (cond
-      (anti-sym? f) (compile-anti deps args)
       (= :do sp) (compile-do deps args)
       (= :let sp) (compile-let deps form)
       (= :catch sp) (compile-catch deps form)
@@ -239,9 +246,11 @@
       :default (compile-basic-seq deps form))))
 
 (defn compile-seq [deps form]
-  (if (either-sym? (first form))
-    (compile-either deps (rest form))
-    (compile-seq-sub deps (macroexpand form))))
+  (let [[f & args] form]
+    (cond
+      (either-sym? f) (compile-either deps args)
+      (anti-sym? f) (compile-anti deps args)
+      :default (compile-seq-sub deps (macroexpand form)))))
 
 (defn compile-vector [deps form]
   (with-compiled [args (map (compile-sub deps) form)]

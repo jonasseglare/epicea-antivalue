@@ -10,17 +10,17 @@
   (is (= 4 (av/either (av/make false 9 3) 4)))
   (is (= 9 (av/either (av/make true 9 3) 4)))
 
-  ;; This test PASSES
+  ;; This test PASSES, as we would expect.
   (is (try
-        (eval 'av/symbol-that-is-unbound)
+        (eval '(println epicea.antivalue.core/some-unbound-symbol))
         false
         (catch Throwable e
           true)))
   
   ;; But outside the 'av/either' macro, 'av/make' should be unbound.
-  ;; This test FAILS, but I don't want it to fail.
+  ;; This test FAILS, but I don't want it to fail. How can we achieve that?
   (is (try
-        (eval 'av/make)
+        (eval '(println epicea.antivalue.core/make))
         false
         (catch Throwable e
           true))))

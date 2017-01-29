@@ -18,7 +18,7 @@
     (compiles-identically '(1 :a 3))
     (is (= 9 (av/unwrap (tag/tag-success 9))))
     (try
-      (av/unwrap-dep-value (tag/tag-failure 9))
+      (av/unwrap (tag/tag-failure 9))
       (is false)
       (catch AntivalueException e
         (is (= 9 (.state e)))))

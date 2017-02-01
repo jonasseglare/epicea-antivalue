@@ -28,4 +28,6 @@
     (is (symbol? a))
     (is (= 3 b)))
 
+  (is (= [] (make-farg-binding (prepare-arg (defined 3)))))
+
 )

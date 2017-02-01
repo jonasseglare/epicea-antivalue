@@ -74,9 +74,12 @@
     [(:sym prepared) (:expr prepared)]
     []))
 
+(defn make-farg-bindings [prepared]
+  (reduce into [] (make-farg-binding prepared)))
+
 (defn prepare-args [state compiled-args cb]
   (let [prepared (map prepare-arg compiled-args)]
-    `(let ~(reduce into [] (make-farg-binding prepared))
+    `(let ~(make-farg-bindings prepared)
        `(if-let [av# ~(first-antivalue prepared)]
           av#
           ~(cb (map :expr prepared))))))

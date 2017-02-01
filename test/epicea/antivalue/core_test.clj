@@ -20,4 +20,9 @@
   (is (= 4 (export (either (anti 3) 4))))
   (is (= 3 (export (either (anti (anti 3)) 4))))
   (is (contains? (prepare-arg (undefined 3)) :sym))
-  (is (not (contains? (prepare-arg (defined 3)) :sym))))
+  (is (not (contains? (prepare-arg (defined 3)) :sym)))
+  (is (nil? (export (first-antivalue 
+                     [(prepare-arg (defined 3)) 
+                      (prepare-arg (undefined 4))]))))
+
+)

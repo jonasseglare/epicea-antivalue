@@ -83,17 +83,25 @@
   (reduce into [] (map make-farg-binding prepared)))
 
 (defn wrap-arg-binding [state prepared cb]
-  `(let ~(make-farg-bindings prepared)
-     (if-let [av# ~(first-antivalue prepared)]
-       av#
-       ~(cb (map :expr prepared)))))
+  (let [bindings (make-farg-bindings prepared)
+        subexpr (cb (map :expr prepared))]
+    (if (empty? bindings)
+      subexpr
+      `(let ~bindings
+         (if-let [av# ~(first-antivalue prepared)]
+           av#
+           ~subexpr)))))
 
 (defn prepare-args [state args]
   (map prepare-arg (compile-args state args)))
 
+(defn prepared-has-undefined? [x]
+  (first (filter :antivalue? x)))
+
 (defn compile-fun-call [state f args0]
   (let [prepared (prepare-args state args0)]
-    (undefined
+    ((if (prepared-has-undefined? prepared)
+       undefined defined)
      (wrap-arg-binding
       state prepared
       (fn [args]

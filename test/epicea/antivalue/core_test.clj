@@ -15,4 +15,6 @@
   (is (antivalue? (anti 3)))
   (is (= 3 (anti (anti 3))))
   (is (antivalue? (export (anti 3))))
-  (is (not (antivalue? (export 3)))))
+  (is (not (antivalue? (export 3))))
+  (is (= 3 (export (either 3 4))))
+  (is (= 4 (export (either (anti 3) 4)))))

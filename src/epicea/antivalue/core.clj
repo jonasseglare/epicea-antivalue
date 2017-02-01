@@ -9,8 +9,13 @@
 (def defined (tag/tag :defined))
 (def undefined (tag/tag :undefined))
 
-(def defined? (tag/tagged? :defined))
-(def undefined? (tag/tagged? :undefined))
+(defn defined? [x]
+  (assert (tag/pair? x))
+  (tag/tagged? :defined x))
+
+(defn undefined? [x]
+  (assert (tag/pair? x))
+  (tag/tagged? :undefined x))
 
 (def init-state {:undefined #{} :debug? false})
 
@@ -77,27 +82,32 @@
 (defn make-farg-bindings [prepared]
   (reduce into [] (map make-farg-binding prepared)))
 
-(defn prepare-args [state compiled-args cb]
-  (let [prepared (map prepare-arg compiled-args)]
-    (dout prepared)
-    `(let ~(make-farg-bindings prepared)
-       (if-let [av# ~(first-antivalue prepared)]
-         av#
-         ~(cb (map :expr prepared))))))
+(defn wrap-arg-binding [state prepared cb]
+  `(let ~(make-farg-bindings prepared)
+     (if-let [av# ~(first-antivalue prepared)]
+       av#
+       ~(cb (map :expr prepared)))))
+
+(defn prepare-args [state args]
+  (map prepare-arg (compile-args state args)))
 
 (defn compile-fun-call [state f args0]
-  (let [args (map prepare-arg (compile-args state args0))]
-    nil))
+  (let [prepared (prepare-args state args0)]
+    (undefined
+     (wrap-arg-binding
+      state prepared
+      (fn [args]
+        `(~f ~@args))))))
 
 (defn compile-if [state x]
   nil)
 
 (defn compile-seq-sub [state x]
-  (let [[f & r] x
+  (let [[f & args] x
         sf (get macro/special-forms f)]
     (cond
       (= :if sf) (compile-if state x)
-      :default (compile-fun-call state f x))))
+      :default (compile-fun-call state f args))))
 
 (defn compile-seq [state x]
   (let [f (first x)]

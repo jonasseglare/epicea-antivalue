@@ -21,13 +21,14 @@
   (is (= 3 (export (either (anti (anti 3)) 4))))
   (is (contains? (prepare-arg (undefined 3)) :sym))
   (is (not (contains? (prepare-arg (defined 3)) :sym)))
-  (is (nil? (export (first-antivalue 
-                     [(prepare-arg (defined 3)) 
-                      (prepare-arg (undefined 4))]))))
   (let [[a b] (make-farg-binding (prepare-arg (undefined 3)))]
     (is (symbol? a))
     (is (= 3 b)))
 
   (is (= [] (make-farg-binding (prepare-arg (defined 3)))))
+  (is (= 6 (export (+ 1 2 3))))
+  (let [x (export (+ (anti 1) 2 3))]
+    (is (= 1 (:data x)))
+    (is (antivalue? x)))
 
 )

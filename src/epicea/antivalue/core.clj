@@ -75,14 +75,15 @@
     []))
 
 (defn make-farg-bindings [prepared]
-  (reduce into [] (make-farg-binding prepared)))
+  (reduce into [] (map make-farg-binding prepared)))
 
 (defn prepare-args [state compiled-args cb]
   (let [prepared (map prepare-arg compiled-args)]
+    (dout prepared)
     `(let ~(make-farg-bindings prepared)
-       `(if-let [av# ~(first-antivalue prepared)]
-          av#
-          ~(cb (map :expr prepared))))))
+       (if-let [av# ~(first-antivalue prepared)]
+         av#
+         ~(cb (map :expr prepared))))))
 
 (defn compile-fun-call [state f args0]
   (let [args (map prepare-arg (compile-args state args0))]

@@ -146,6 +146,6 @@
   (tag/value (compile-sub init-state x)))
 
 (defmacro either [x]
-  (let [c (compile-either init-state (rest x))]
+  (let [c (compile-either init-state x)]
     (assert (defined? x))
     (tag/value c)))

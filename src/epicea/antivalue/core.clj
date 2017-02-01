@@ -129,10 +129,9 @@
   (println "compile seq on " x)
   (let [[f & args] x]
     (cond
-      (macro/compare-symbols `import f) (do (println "A") (compile-import state args))
-      (macro/compare-symbols `anti f) (do (println "B") (compile-anti state args))
-      (macro/compare-symbols `either f) (do (println "C") 
-                                            (compile-either state (compile-args state (rest x))))
+      (macro/compare-symbols `import f) (compile-import state args)
+      (macro/compare-symbols `anti f) (compile-anti state args)
+      (macro/compare-symbols `either f) (compile-either state (compile-args state (rest x)))
       :default (compile-seq-sub state (macroexpand x)))))
 
 (defn compile-sub 

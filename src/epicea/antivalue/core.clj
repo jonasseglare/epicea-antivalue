@@ -14,6 +14,22 @@
 
 (def init-state {:undefined #{} :debug? false})
 
-(defn compile-primitive [state x]
-  (if (contains? (:undefined state) x)
-    nil))
+(defrecord Antivalue [data])
+
+(defn antivalue [x]
+  (->Antivalue x))
+
+(defn antivalue? [x]
+  (= (class x) Antivalue))
+
+(defn has-undefined? [state x]
+  (contains? (:undefined state) x))
+
+(defn compile-primitive [state x] 
+  ((if (has-undefined? state x)
+     undefined
+     defined) x))
+
+(defn compile-sub [state x]
+  (cond
+    :default (compile-primitive state x)))

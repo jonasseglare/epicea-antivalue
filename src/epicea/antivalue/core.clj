@@ -2,7 +2,7 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]
             [clojure.spec :as spec]
-            [epicea.utils.macro :refer :all :as macro]
+            [epicea.utils.macro :as macro]
             [epicea.utils.debug :refer [dout]]))
 
 (declare compile-sub)
@@ -29,6 +29,24 @@
   ((if (has-undefined? state x)
      undefined
      defined) x))
+
+(defn anti [x]
+  (if (antivalue? x)
+    (:data x)
+    (antivalue x)))
+
+(defn compile-anti [state x]
+  (undefined `(anti ~(compile-sub state x))))
+
+(defn compile-either [state x]
+  x)
+
+(defn compile-seq [state x]
+  (let [f (first x)]
+    (cond
+      (compile-anti `anti f) (compile-anti state x)
+      (compare-symbols `either f) (compile-either state x)
+      :default (compile-seq state (macroexpand x)))))
 
 (defn compile-sub [state x]
   (cond

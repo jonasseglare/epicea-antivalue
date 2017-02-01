@@ -11,4 +11,6 @@
   (is (antivalue? (antivalue 3)))
   (is (not (antivalue? 3)))
   (compiles-identically 3)
-  (compiles-identically 'a))
+  (compiles-identically 'a)
+  (is (antivalue? (anti 3)))
+  (is (= 3 (anti (anti 3)))))

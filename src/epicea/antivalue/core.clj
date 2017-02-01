@@ -41,7 +41,14 @@
   (undefined `(anti ~(compile-sub state (second x)))))
 
 (defn compile-either [state x]
-  x)
+  (let [[f & r] x
+        c (compile-sub state f)]
+    (if (empty? r)
+      f
+      `(let [y# ~c]
+         (if (antivalue? y#)
+           ~(compile-either state r)
+           y#)))))
 
 (defn compile-seq [state x]
   (dout x)
@@ -57,4 +64,4 @@
     :default (compile-primitive state x)))
 
 (defmacro export [x]
-  (compile-sub init-state x))
+  (tag/value (compile-sub init-state x)))

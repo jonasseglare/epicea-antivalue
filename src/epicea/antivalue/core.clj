@@ -60,8 +60,8 @@
 (defn compile-seq [state x]
   (let [f (first x)]
     (cond
-      (compare-symbols `anti f) (compile-anti state x)
-      (compare-symbols `either f) (compile-either state (compile-args state (rest x)))
+      (macro/compare-symbols `anti f) (compile-anti state x)
+      (macro/compare-symbols `either f) (compile-either state (compile-args state (rest x)))
       :default (compile-seq-sub state (macroexpand x)))))
 
 (defn compile-sub 

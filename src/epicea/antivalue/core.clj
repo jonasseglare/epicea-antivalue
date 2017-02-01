@@ -45,7 +45,6 @@
     (antivalue x)))
 
 (defn compile-anti [state args]
-  (println "compile anti")
   (assert (= 1 (count args)))
   (undefined `(anti ~(tag/value (compile-sub state (first args))))))
 
@@ -100,7 +99,6 @@
   (first (filter :antivalue? x)))
 
 (defn compile-fun-call [state f args0]
-  (println "funcall on " args0)
   (let [prepared (prepare-args state args0)]
     ((if (prepared-has-undefined? prepared)
        undefined defined)
@@ -113,7 +111,6 @@
   nil)
 
 (defn compile-seq-sub [state x]
-  (println "Compile seq --sub-- on " x)
   (let [[f & args] x
         sf (get macro/special-forms f)]
     (cond
@@ -122,11 +119,9 @@
 
 (defn compile-import [state args]
   (assert (= 1 (count args)))
-  (println "Compile import on " (first args))
   (undefined (tag/value (compile-sub state (first args)))))
 
 (defn compile-seq [state x]
-  (println "compile seq on " x)
   (let [[f & args] x]
     (cond
       (macro/compare-symbols `import f) (compile-import state args)

@@ -19,8 +19,12 @@
 (defn antivalue [x]
   (->Antivalue x))
 
+
 (defn antivalue? [x]
   (= (class x) Antivalue))
+
+(defn antivalue-or-nil [x]
+  (if (antivalue? x) x))
 
 (defn has-undefined? [state x]
   (contains? (:undefined state) x))
@@ -58,8 +62,24 @@
   (merge
    {:expr (tag/value arg)}
    (if (defined? arg)
-     {}
-     {:sym (gensym)})))
+     {:antivalue? false}
+     {:antivalue? true
+      :sym (gensym)})))
+
+(defn first-antivalue [args]
+  `(or ~@(map (fn [arg] `(antivalue-or-nil ~(:expr arg))) (filter :antivalue? args))))
+
+(defn make-farg-binding [prepared]
+  (if (contains? prepared :sym)
+    [(:sym prepared) (:expr prepared)]
+    []))
+
+(defn prepare-args [state compiled-args cb]
+  (let [prepared (map prepare-arg compiled-args)]
+    `(let ~(reduce into [] (make-farg-binding prepared))
+       `(if-let [av# ~(first-antivalue prepared)]
+          av#
+          ~(cb (map :expr prepared))))))
 
 (defn compile-fun-call [state f args0]
   (let [args (map prepare-arg (compile-args state args0))]

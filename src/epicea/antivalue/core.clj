@@ -44,9 +44,10 @@
     (:data x)
     (antivalue x)))
 
-(defn compile-anti [state x]
-  (assert (= 2 (count x)))
-  (undefined `(anti ~(tag/value (compile-sub state (second x))))))
+(defn compile-anti [state args]
+  (println "compile anti")
+  (assert (= 1 (count args)))
+  (undefined `(anti ~(tag/value (compile-sub state (first args))))))
 
 (defn compile-args [state args]
   (map (compile-sub state) args))
@@ -99,6 +100,7 @@
   (first (filter :antivalue? x)))
 
 (defn compile-fun-call [state f args0]
+  (println "funcall on " args0)
   (let [prepared (prepare-args state args0)]
     ((if (prepared-has-undefined? prepared)
        undefined defined)
@@ -111,17 +113,26 @@
   nil)
 
 (defn compile-seq-sub [state x]
+  (println "Compile seq --sub-- on " x)
   (let [[f & args] x
         sf (get macro/special-forms f)]
     (cond
       (= :if sf) (compile-if state x)
       :default (compile-fun-call state f args))))
 
+(defn compile-import [state args]
+  (assert (= 1 (count args)))
+  (println "Compile import on " (first args))
+  (undefined (tag/value (compile-sub state (first args)))))
+
 (defn compile-seq [state x]
-  (let [f (first x)]
+  (println "compile seq on " x)
+  (let [[f & args] x]
     (cond
-      (macro/compare-symbols `anti f) (compile-anti state x)
-      (macro/compare-symbols `either f) (compile-either state (compile-args state (rest x)))
+      (macro/compare-symbols `import f) (do (println "A") (compile-import state args))
+      (macro/compare-symbols `anti f) (do (println "B") (compile-anti state args))
+      (macro/compare-symbols `either f) (do (println "C") 
+                                            (compile-either state (compile-args state (rest x))))
       :default (compile-seq-sub state (macroexpand x)))))
 
 (defn compile-sub 
@@ -134,3 +145,8 @@
 
 (defmacro export [x]
   (tag/value (compile-sub init-state x)))
+
+(defmacro either [x]
+  (let [c (compile-either init-state (rest x))]
+    (assert (defined? x))
+    (tag/value c)))

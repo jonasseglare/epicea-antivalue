@@ -30,5 +30,9 @@
   (let [x (export (+ (anti 1) 2 3))]
     (is (= 1 (:data x)))
     (is (antivalue? x)))
+  (is (antivalue? (export (import (antivalue 3)))))
 
 )
+
+;; NOT YET GOOD!
+;; 

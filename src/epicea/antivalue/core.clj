@@ -54,8 +54,26 @@
               ~(tag/value (compile-either state r))
               y#)))))))
 
+(defn prepare-arg [arg]
+  (merge
+   {:expr (tag/value arg)}
+   (if (defined? arg)
+     {}
+     {:sym (gensym)})))
+
+(defn compile-fun-call [state f args0]
+  (let [args (map prepare-arg (compile-args state args0))]
+    nil))
+
+(defn compile-if [state x]
+  nil)
+
 (defn compile-seq-sub [state x]
-  (macro/error "Not impl"))
+  (let [[f & r] x
+        sf (get macro/special-forms f)]
+    (cond
+      (= :if sf) (compile-if state x)
+      :default (compile-fun-call state f x))))
 
 (defn compile-seq [state x]
   (let [f (first x)]

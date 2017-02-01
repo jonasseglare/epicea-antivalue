@@ -36,18 +36,25 @@
     (antivalue x)))
 
 (defn compile-anti [state x]
-  (undefined `(anti ~(compile-sub state x))))
+  (dout x)
+  (assert (= 2 (count x)))
+  (undefined `(anti ~(compile-sub state (second x)))))
 
 (defn compile-either [state x]
   x)
 
 (defn compile-seq [state x]
+  (dout x)
   (let [f (first x)]
     (cond
-      (compile-anti `anti f) (compile-anti state x)
+      (compare-symbols `anti f) (compile-anti state x)
       (compare-symbols `either f) (compile-either state x)
       :default (compile-seq state (macroexpand x)))))
 
 (defn compile-sub [state x]
   (cond
+    (seq? x) (compile-seq state x)
     :default (compile-primitive state x)))
+
+(defmacro export [x]
+  (compile-sub init-state x))

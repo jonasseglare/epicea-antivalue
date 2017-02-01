@@ -24,5 +24,8 @@
   (is (nil? (export (first-antivalue 
                      [(prepare-arg (defined 3)) 
                       (prepare-arg (undefined 4))]))))
+  (let [[a b] (make-farg-binding (prepare-arg (undefined 3)))]
+    (is (symbol? a))
+    (is (= 3 b)))
 
 )

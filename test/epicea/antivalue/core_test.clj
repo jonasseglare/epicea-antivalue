@@ -49,6 +49,11 @@
   (is (antivalue? (export (let [a (anti 3) b 2] (+ a b)))))
   (is (= 5 (export (let [a (anti (anti 3)) b 2] (+ a b)))))
   (is (= 5 (export (let [a (anti (anti 3)) b (anti (anti 2))] (+ a b)))))
+  (is (= 3 (export (do 1 2 3))))
+  (let [y (export (do 1 (anti 2) 3))]
+    (is (antivalue? y))
+    (is (= 2 (anti y))))
+
 
 )
 

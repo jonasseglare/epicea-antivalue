@@ -150,6 +150,25 @@
        `(let ~(vec bindings)
           ~(tag/value body))))))
 
+(defn compile-do-sub [state args]
+  (let [[f & r] args]
+    (if (empty? r)
+      (tag/value f)
+      (if (defined? f)
+        `(do ~(tag/value f) ~(compile-do-sub state r))
+        `(do (let [y# ~(tag/value f)]
+               (if (antivalue? y#)
+                 y#
+                 ~(compile-do-sub state r))))))))
+      
+
+(defn compile-do [state args]
+  (if (empty? args) 
+    nil
+    (let [c (compile-args state args)]
+      ((if (some undefined? c)
+         undefined defined)
+       (compile-do-sub state c)))))
 
 (defn compile-seq-sub [state x]
   (let [[f & args] x
@@ -158,6 +177,7 @@
       (= :if sf) (compile-if state x)
       (= :quote sf) x
       (= :let sf) (compile-let state x)
+      (= :do sf) (compile-do state args)
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]

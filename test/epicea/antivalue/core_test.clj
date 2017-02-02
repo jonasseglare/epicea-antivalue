@@ -36,6 +36,8 @@
   (is (antivalue? (export (if (anti 9) 3 4))))
   (is (antivalue? (export (if true (anti 3) 4))))
   (is (= 3 (export (if true 3 (anti 4)))))
+  (is (antivalue? (export (if false 3 (anti 4)))))
+  (is (= 4 (export (if false (anti 3) 4))))
 
 )
 

@@ -38,6 +38,9 @@
   (is (= 3 (export (if true 3 (anti 4)))))
   (is (antivalue? (export (if false 3 (anti 4)))))
   (is (= 4 (export (if false (anti 3) 4))))
+  (is (= 4 (export (if true 4))))
+  (is (antivalue? (export (if true (anti 4)))))
+  (is (nil? (export (if false (anti 3)))))
 
 )
 

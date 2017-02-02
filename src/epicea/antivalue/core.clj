@@ -145,14 +145,10 @@
     (assert (not (= parsed ::macro/invalid)))
     (let [[state bindings] (compile-bindings state0 (:bindings parsed))
           body (compile-sub state `(do ~@(:forms parsed)))]
-      (println "state = " state)
-      (println "bindings = " bindings)
-      (println "body = " body)
-      (dout
-       (tag/tag 
-        (tag/get-tag body)
-        `(let ~(vec bindings)
-           ~(tag/value body)))))))
+      (tag/tag 
+       (tag/get-tag body)
+       `(let ~(vec bindings)
+          ~(tag/value body))))))
 
 
 (defn compile-seq-sub [state x]

@@ -45,6 +45,10 @@
   (is (= 3 (export (let [] 3))))
   (is (= 3 (export (let [a 3] a))))
   (is (= 4 (export (let [a 3 b 1] (+ a b)))))
+  (is (= 4 (export (let [a (anti 3) b 2] (* b b)))))
+  (is (antivalue? (export (let [a (anti 3) b 2] (+ a b)))))
+  (is (= 5 (export (let [a (anti (anti 3)) b 2] (+ a b)))))
+  (is (= 5 (export (let [a (anti (anti 3)) b (anti (anti 2))] (+ a b)))))
 
 )
 

@@ -19,6 +19,10 @@
 
 (def init-state {:undefined #{} :debug? false})
 
+(defn add-undefined [state x]
+  (update-in state [:undefined]
+             #(conj % x)))
+
 (defrecord Antivalue [data])
 
 (defn antivalue [x]
@@ -109,6 +113,7 @@
 
 (defn compile-if [state x]
   (let [parsed (spec/conform ::macro/if-form x)]
+    (assert (not (= parsed ::spec/invalid)))
     (let [c (compile-sub state (:test parsed))
           on-true (compile-sub state (:on-true parsed))
           on-false (compile-sub state (:on-false parsed))
@@ -125,12 +130,38 @@
               y#
               (if y# ~@branches))))))))
 
+(defn compile-binding [[state bindings] b]
+  (let [c (compile-sub state (:expr b))]
+    [(if (defined? c)
+       state
+       (add-undefined state (:symbol b)))
+     (into bindings [(:symbol b) (tag/value c)])]))
+
+(defn compile-bindings [state bindings]
+  (reduce compile-binding [state []] bindings))
+
+(defn compile-let [state0 x]
+  (let [parsed (spec/conform ::macro/basic-let-form x)]
+    (assert (not (= parsed ::macro/invalid)))
+    (let [[state bindings] (compile-bindings state0 (:bindings parsed))
+          body (compile-sub state `(do ~@(:forms parsed)))]
+      (println "state = " state)
+      (println "bindings = " bindings)
+      (println "body = " body)
+      (dout
+       (tag/tag 
+        (tag/get-tag body)
+        `(let ~(vec bindings)
+           ~(tag/value body)))))))
+
+
 (defn compile-seq-sub [state x]
   (let [[f & args] x
         sf (get macro/special-forms f)]
     (cond
       (= :if sf) (compile-if state x)
       (= :quote sf) x
+      (= :let sf) (compile-let state x)
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]

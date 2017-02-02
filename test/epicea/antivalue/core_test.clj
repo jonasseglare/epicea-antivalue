@@ -31,6 +31,11 @@
     (is (= 1 (:data x)))
     (is (antivalue? x)))
   (is (antivalue? (export (import (antivalue 3)))))
+  (is (= 3 (export (if true 3 4))))
+  (is (= 4 (export (if false 3 4))))
+  (is (antivalue? (export (if (anti 9) 3 4))))
+  (is (antivalue? (export (if true (anti 3) 4))))
+  (is (= 3 (export (if true 3 (anti 4)))))
 
 )
 

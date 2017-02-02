@@ -108,7 +108,22 @@
         `(~f ~@args))))))
 
 (defn compile-if [state x]
-  nil)
+  (let [parsed (spec/conform ::macro/if-form x)]
+    (let [c (compile-sub state (:test parsed))
+          on-true (compile-sub state (:on-true parsed))
+          on-false (compile-sub state (:on-false parsed))
+          branches (map tag/value [on-true on-false])
+          all-defined (and (defined? c) (defined? on-true) (defined? on-false))]
+      ((if all-defined
+         defined
+         undefined)
+       (if (defined? c)
+         `(if ~(tag/value c)
+            ~@branches)
+         `(let [y# ~(tag/value c)]
+            (if (antivalue? y#)
+              y#
+              (if y# ~@branches))))))))
 
 (defn compile-seq-sub [state x]
   (let [[f & args] x

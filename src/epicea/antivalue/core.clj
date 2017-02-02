@@ -130,6 +130,7 @@
         sf (get macro/special-forms f)]
     (cond
       (= :if sf) (compile-if state x)
+      (= :quote sf) x
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]

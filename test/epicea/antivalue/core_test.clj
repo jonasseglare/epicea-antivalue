@@ -41,6 +41,7 @@
   (is (= 4 (export (if true 4))))
   (is (antivalue? (export (if true (anti 4)))))
   (is (nil? (export (if false (anti 3)))))
+  (is (= '(4 1 (anti 2) 3) (export '(conj '(1 (anti 2) 3) 4))))
 
 )
 

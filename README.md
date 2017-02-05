@@ -1,4 +1,5 @@
 # epicea-antivalue
+*How to deal with odd outcomes from computations*
 
 Antivalues let us break control flow locally and return an alternative result of a computation. They work a bit like exceptions, but there is only one type of antivalue, no type-based dispatch, and they cannot escape from functions or loops. Antivalues can be converted to regular values using ```anti``` and regular values can be converted to antivalues using ```anti```. Whenever an antivalue occurs, it interupts all expressions currently being evaluated, and propagates up the nested forms until it reaches a form that will handle it, such as ```either```, ```anti``` or ```export```. 
 

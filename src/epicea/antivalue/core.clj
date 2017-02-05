@@ -46,14 +46,17 @@
      undefined
      defined) x))
 
-(defn anti [x]
+(defn anti-fn [x]
   (if (antivalue? x)
     (:data x)
     (antivalue x)))
 
+(defmacro anti [& args]
+  (macro/error "'anti' called outside of context"))
+
 (defn compile-anti [state args]
   (assert (= 1 (count args)))
-  (undefined `(anti ~(tag/value (compile-sub state (first args))))))
+  (undefined `(anti-fn ~(tag/value (compile-sub state (first args))))))
 
 (defn compile-args [state args]
   (map (compile-sub state) args))

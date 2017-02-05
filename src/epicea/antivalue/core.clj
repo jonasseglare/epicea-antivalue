@@ -312,7 +312,7 @@
   ([state x]
    (cond
      (seq? x) (compile-seq state x)
-     ;(map? x) (compile-map state x)
+     (map? x) (compile-map state x)
      (set? x) (compile-set state x)
      (vector? x) (compile-vector state x)
      :default (compile-primitive state x)))

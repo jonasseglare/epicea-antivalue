@@ -79,11 +79,11 @@ In case we would actually need to work with an antivalue like a regular value, t
 (export (anti 3))
 ```
 evaluates to
-```
+```clojure
 #epicea.antivalue.core.Antivalue{:data 3}
 ```
 And if we want to take any value and convert it to an antivalue if possible, there is ```import```. For instance, this call will take the raw representation of the antivalue previous exported and convert it to an ordinary value:
-```
+```clojure
 (export (anti (import #epicea.antivalue.core.Antivalue{:data 3})))
 ```
 so that we get ```3``` as result. The mechanism of ```import``` and ```export``` could be used to make antivalues cross function boundaries, but should probably be used with care. It might be better to explicitly use ```either``` to produce alternative return values if a computation fails.

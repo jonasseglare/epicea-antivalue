@@ -1,16 +1,6 @@
 # epicea-antivalue
 
-To interupt the program flow locally with *antivalues*. A bit like a local exception mechanism. 
-Actually, it is implemented using exceptions, but it could as well be implemented using just
-code transformations by a macro. But it is easier to get it working with exceptions.
-
-## Rationale
-
-Exceptions seem to be common practice in for instance Java. In a functional programming language such as Clojure *the problem* is that they cause a lot of confusion: Should the result of the computation performed by a function be represented by a *return value*, or is it represented by an *exception* thrown by the function (or some function that it calls)? This is problematic, because it can be hard to simultaneously deal with these two types of outcomes. It is simpler if functions only produce return values.
-
-Nevertheless, locally, exceptions can still be convenient to interupt control flow. For instance, maybe a user tries to log in on a system. We would expect that the user typed a valid user name, and from our user database we can retrieve a record for that user and check the password. It could however be that there is no user for that user name, and in that case, we would need to follow a different path than checking the provided password against a non-existant user. In that case, an exception based mechanism could help to break the control flow in a more convenient manner than using nested if- and let forms.
-
-epicea/antivalues introduce *antivalues* that are similar to exceptions, but only work *locally* and not across function boundaries. Whenever a computation produces an antivalue, that computation is interupted. The antivalue produced inside a computation can then be either turned into a regular Clojure value using the ```anti``` form, or it can be ignored and another computation can continue instead, by using the ```either``` form. Furthermore, ```anti``` can also turn a regular clojure value into an ```anti```-value.
+Antivalues let us break control flow locally and return an alternative result of a computation. They work a bit like exceptions, but there is only one type of antivalue, no type-based dispatch, and they cannot escape from functions or loops. Antivalues can be converted to regular values using ```anti``` and regular values can be converted to antivalues using ```anti```. Whenever an antivalue occurs, it interupts all expressions currently being evaluated, and propagates up the nested forms until it reaches a form that will handle it, such as ```either``` or ```export```. Even if they behave a bit like exceptions, this library generates standard Clojure code without exceptions from code that uses antivalues. That way, it can easily be made to work on different host platforms and we could hope that it will play well with other macro libraries, such as core.async (TODO: test that...)
 
 ## Usage
 We will be using the namespace ```epicea.antivalue.core```.
@@ -87,6 +77,12 @@ The ```expect``` macro tests if a function applied to a value is true and return
   * Also, antivalues currently don't work with loops.
   * Whenever an antivalue occurs inside a let bounding form, instead of interupting the entire form as would have been the case with an exception, the antivalue is kept inside the bound symbol and only released once the bound symbol is evaluated.
   * There is only one type of antivalues. There is no type-based dispatch.
+
+## Rationale
+
+Exceptions cause confusion when they escape from functions, because the result of the function can either be a return value or an exception. If functions only produce return values but no exceptions, the code becomes simpler. But locally, exceptions can still be convenient because they *can* let us express the control flow more concisely and to the point. 
+
+This library emulates a very simple form of exceptions that only work locally and makes it easy to deal with all the different forms of return values from calling functions, so that we can write code which is both robust, expressive and easy to reason about.
 
 ## License
 

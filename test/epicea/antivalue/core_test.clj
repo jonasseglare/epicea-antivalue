@@ -54,6 +54,7 @@
     (is (antivalue? y))
     (is (= 2 (anti y))))
   (is (= #{1 2 3} (export #{1 2 (either 3 4)})))
+  (is (= {:a 2 :b 6} (export {:a (either 2 3) :b (either (anti 5) 6)})))
 
 
 )

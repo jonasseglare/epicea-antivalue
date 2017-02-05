@@ -138,7 +138,21 @@
 (defn compile-set [state args]
   (compile-coll state #{} args))
 
+(defn make-pair [state b]
+  (if (map? state)
+    (conj (:acc state) [(:last state) b])
+    {:acc state :last b}))
+  
 
+(defn make-pairs [x]
+  (reduce make-pair [] x))
+   
+
+(defn compile-map [state args]
+  (compile-fun-call-sub
+   state (apply concat args)
+   (fn [args]
+     (into {} (make-pairs args)))))
 
 
 (defn compile-if [state x]

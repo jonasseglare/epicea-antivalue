@@ -4,6 +4,37 @@ Antivalues let us break control flow locally and return an alternative result of
 
 Even if they behave a bit like exceptions, this library generates standard Clojure code without exceptions from code that uses antivalues. That way, it can easily be made to work on different host platforms and we could hope that it will play well with other macro libraries, such as core.async (TODO: test that...). Unlike exceptions, antivalues can be associated to symbol using the ```let``` form, which makes it easy to identify the reason why some computation failed, instead of using the type-based dispatch mechanism of exceptions.
 
+## Introductory example
+Here is a small function to illustrate what the library does.
+```clojure
+(defn bmi [data]
+  (top
+   (let [mass (expect number? (:mass data))
+         height (expect number? (:height data))]
+     (either (/ mass (* height height))
+             [:missing-mass (anti mass)]
+             [:missing-height (anti height)]
+             nil))))
+```
+It uses ```expect``` to validate the ```mass``` and ```height``` values in the map, and ```either``` to decide what to return. There is also a ```top``` form that surrounds everything and rewrites the code into regular clojure code.
+
+So if we call it with approprate arguments,
+```clojure
+(bmi {:mass 80 :height 1.94})
+```
+we get
+```clojure
+21.25624402168137
+```
+but with wrong arguments,
+```clojure
+(bmi {:mass 80 :height :kattskit})
+```
+we get
+```clojure
+[:missing-height :kattskit]
+```
+
 ## Usage
 We will be using the namespace ```epicea.antivalue.core```.
 

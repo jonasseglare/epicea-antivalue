@@ -96,6 +96,22 @@
   (is (= 24 (factorial-2 4)))
   (is (= [:bad-input :a] (factorial-2 :a))))
   
+(defn bmi [data]
+  (top
+   (let [mass (expect number? (:mass data))
+         height (expect number? (:height data))]
+     (either (/ mass (* height height))
+             [:missing-mass (anti mass)]
+             [:missing-height (anti height)]
+             nil))))
+
+(deftest bmi-test
+  (is (= (/ 80 (* 1.94 1.94)) (bmi {:mass 80 :height 1.94})))
+  (is (= [:missing-height :kattskit]
+         (bmi 
+          {:mass 80 :height :kattskit})))
+  (is (= [:missing-mass nil]
+         (bmi {:height :kattskit}))))
   
-;; NOT YET GOOD!
-;; 
+; NOT YET GOOD!
+; 

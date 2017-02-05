@@ -55,7 +55,7 @@
 (defn compile-args [state args]
   (map (compile-sub state) args))
 
-(defn compile-either [state args]
+(defn compile-either-sub [state args]
   (let [[f & r] args]
     (if (defined? f)
       f
@@ -64,8 +64,11 @@
         (undefined 
          `(let [y# ~(tag/value f)]
             (if (antivalue? y#)
-              ~(tag/value (compile-either state r))
+              ~(tag/value (compile-either-sub state r))
               y#)))))))
+
+(defn compile-either [state args]
+  (dout (compile-either-sub state (compile-args state args))))
 
 (defn prepare-arg [arg]
   (merge
@@ -181,13 +184,13 @@
 ;; 'loop* :loop
 ;; 'recur :recur
 ;; 'throw :throw
-;; 'def :def
-;; 'var :var
-;; 'monitor-enter
-;; 'monitor-exit
+;; 'def :def ;; Like a funcall
+;; 'var :var ;; Like a funcall
+;; 'monitor-enter ;; Like a funcall
+;; 'monitor-exit ;; Like a funcall
 ;; 'fn* :fn ;; OK
 ;; 'try :try
-;; 'catch :catch
+;; 'catch :catch ;; TODO, remember to handle the 
 ;; 'quote :quote ;; OK
 
 (defn compile-seq-sub [state x]
@@ -210,7 +213,7 @@
     (cond
       (macro/compare-symbols `import f) (compile-import state args)
       (macro/compare-symbols `anti f) (compile-anti state args)
-      (macro/compare-symbols `either f) (compile-either state (compile-args state (rest x)))
+      (macro/compare-symbols `either f) (compile-either state args)
       :default (compile-seq-sub state (macroexpand x)))))
 
 (defn compile-sub 
@@ -224,9 +227,10 @@
 (defmacro export [x]
   (tag/value (compile-sub init-state x)))
 
-(defmacro either [x]
-  (let [c (compile-either init-state x)]
-    (assert (defined? x))
+(defmacro either [& args]
+  (let [c (compile-either init-state args)]
+    (println "GOT " c)
+    (assert (defined? c))
     (tag/value c)))
 
 (defmacro top [& forms]

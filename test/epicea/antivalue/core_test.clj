@@ -57,5 +57,27 @@
 
 )
 
+
+
+
+(defn factorial [x] (export (if (= 0 x) 1 
+                                (* (expect number? x) 
+                                   (fak (- (expect number? x) 1))))))
+
+;; (defn factorial-2 [x0]
+;;   (either
+;;    (let [x (expect number? x0)]
+;;      (if (<= x 0) 
+;;        1
+;;        (* x (factorial-2 (- x 1)))))
+;;    :bad-input
+         
+
+
+(deftest factorial-test
+  (is (= 1 (factorial 0)))
+  (is (= (* 4 3 2) (factorial 4))))
+  
+  
 ;; NOT YET GOOD!
 ;; 

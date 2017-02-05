@@ -1,5 +1,4 @@
 (ns epicea.antivalue.core
-  (:import [epicea.antivalue AntivalueException])
   (:require [epicea.tag.core :as tag]
             [clojure.spec :as spec]
             [epicea.utils.macro :as macro]

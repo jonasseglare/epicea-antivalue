@@ -1,5 +1,4 @@
 (ns epicea.antivalue.core-test
-  (:import [epicea.antivalue AntivalueException])
   (:require [clojure.test :refer :all]
             [epicea.tag.core :as tag]
             [epicea.antivalue.core :refer :all]))

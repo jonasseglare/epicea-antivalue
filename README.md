@@ -1,6 +1,8 @@
 # epicea-antivalue
 
-Antivalues let us break control flow locally and return an alternative result of a computation. They work a bit like exceptions, but there is only one type of antivalue, no type-based dispatch, and they cannot escape from functions or loops. Antivalues can be converted to regular values using ```anti``` and regular values can be converted to antivalues using ```anti```. Whenever an antivalue occurs, it interupts all expressions currently being evaluated, and propagates up the nested forms until it reaches a form that will handle it, such as ```either``` or ```export```. Even if they behave a bit like exceptions, this library generates standard Clojure code without exceptions from code that uses antivalues. That way, it can easily be made to work on different host platforms and we could hope that it will play well with other macro libraries, such as core.async (TODO: test that...)
+Antivalues let us break control flow locally and return an alternative result of a computation. They work a bit like exceptions, but there is only one type of antivalue, no type-based dispatch, and they cannot escape from functions or loops. Antivalues can be converted to regular values using ```anti``` and regular values can be converted to antivalues using ```anti```. Whenever an antivalue occurs, it interupts all expressions currently being evaluated, and propagates up the nested forms until it reaches a form that will handle it, such as ```either``, ```anti``` or ```export```. 
+
+Even if they behave a bit like exceptions, this library generates standard Clojure code without exceptions from code that uses antivalues. That way, it can easily be made to work on different host platforms and we could hope that it will play well with other macro libraries, such as core.async (TODO: test that...). Unlike exceptions, antivalues can be associated to symbol using the ```let``` form, which makes it easy to identify the reason why some computation failed, instead of using the type-based dispatch mechanism of exceptions.
 
 ## Usage
 We will be using the namespace ```epicea.antivalue.core```.
@@ -56,7 +58,8 @@ Expressions that produce antivalues can exist inside let-bindings, e.g.
          bx (if (number? b) b (anti b))]
       (either (+ ax bx)
               [:bad-input :a (anti ax)]
-              [:bad-input :b (anti bx)]))))
+              [:bad-input :b (anti bx)]
+              nil))))
 ```
 That is practical to identify the reason why we cant procede with a computation. Note that there are two ```either```. The outer ```either``` is only needed for the code transformations.
 
@@ -68,8 +71,24 @@ The ```expect``` macro tests if a function applied to a value is true and return
          bx (expect number? b)]
      (either (+ ax bx)
               [:bad-input :a (anti ax)]
-              [:bad-input :b (anti bx)]))))
+              [:bad-input :b (anti bx)]
+              nil))))
 ```
+In case we would actually need to work with an antivalue like a regular value, the ```export``` function will convert it to such a value. The following call
+```clojure
+(export (anti 3))
+```
+evaluates to
+```
+#epicea.antivalue.core.Antivalue{:data 3}
+```
+And if we want to take any value and convert it to an antivalue if possible, there is ```import```. For instance, this call will take the raw representation of the antivalue previous exported and convert it to an ordinary value:
+```
+(export (anti (import #epicea.antivalue.core.Antivalue{:data 3})))
+```
+so that we get ```3``` as result. The mechanism of ```import``` and ```export``` could be used to make antivalues cross function boundaries, but should probably be used with care. It might be better to explicitly use ```either``` to produce alternative return values if a computation fails.
+
+See the [unit tests](test/epicea/antivalue/core_test.clj) for several examples of how the library can be used.
 
 ## Difference w.r.t exceptions
 

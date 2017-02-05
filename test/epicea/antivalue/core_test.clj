@@ -72,7 +72,7 @@
         1
         (* x (factorial-2 (- x 1))))
       [:bad-input (anti x)]
-      :should-not-reach-this))))
+      nil))))
          
 
 

@@ -282,11 +282,17 @@
   (let [[f & args] x
         sf (get macro/special-forms f)]
     (cond
+      (= :quote sf) (defined x)
+
+      ;; Don't compile these forms (yet):
+      (contains? #{:fn :loop :recur} sf) 
+      (do
+        (macro/warning "Not handling antivalues for " x)
+        (defined x))
+
       (= :if sf) (compile-if state x)
-      (= :quote sf) x
       (= :let sf) (compile-let state x)
       (= :do sf) (compile-do state args)
-      (= :fn sf) x
       (= :try sf) (compile-try state x)
       :default (compile-fun-call state f args))))
 

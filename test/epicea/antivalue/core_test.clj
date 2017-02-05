@@ -55,7 +55,8 @@
     (is (= 2 (anti y))))
   (is (= #{1 2 3} (export #{1 2 (either 3 4)})))
   (is (= {:a 2 :b 6} (export {:a (either 2 3) :b (either (anti 5) 6)})))
-
+  (is (= (compile-try init-state '(try 1 2 3 (catch RuntimeError x (+ x 4)) (finally 5)))
+         [:defined '(try (do 1 (do 2 3)) (catch RuntimeError x (+ x 4)) (finally 5))]))
 
 )
 

@@ -23,6 +23,10 @@
   (update-in state [:undefined]
              #(conj % x)))
 
+(defn remove-undefined [state x]
+  (update-in state [:undefined]
+             #(disj % x)))
+
 (defrecord Antivalue [data])
 
 (defn antivalue [x]
@@ -214,19 +218,64 @@
          undefined defined)
        (compile-do-sub state c)))))
 
+(defn compile-catch [state parsed-catch]
+  (let [body (compile-sub 
+              (remove-undefined state (:var-name parsed-catch))
+              `(do ~@(:forms parsed-catch)))]
+    (tag/tag-like 
+     body
+     (merge
+      parsed-catch 
+      {:forms [(tag/value body)]}))))
+    
+(defn compile-finally [state frm]
+  (when frm
+    (let [sub (compile-sub state `(do ~@(:forms frm)))]
+      (tag/tag-like
+       sub
+       (merge 
+        frm
+        {:forms [(tag/value sub)]})))))
+
+(defn compile-try [state x]
+  (let [parsed (spec/conform ::macro/try-form x)]
+    (if (= parsed ::spec/invalid)
+      (macro/error (spec/explain ::macro/try-form x))
+      (let [forms [(compile-sub state `(do ~@(:forms parsed)))]
+            catch-forms (map #(compile-catch state %) (:catch-forms parsed))
+            finally-form (compile-finally state (:finally-form parsed))
+            is-undefined (or (some undefined? forms)
+                             (some undefined? catch-forms)
+                             (if finally-form
+                               (undefined? finally-form)
+                               false))]
+        ((if is-undefined
+           undefined
+           defined)
+         (spec/unform
+          ::macro/try-form
+          (reduce
+           merge
+           [parsed
+            {:forms (map tag/value forms)
+             :catch-forms (map tag/value catch-forms)}
+            (if finally-form
+              {:finally-form (tag/value finally-form)})])))))))
+        
+
 ;; 'if :if ; OK
 ;; 'do :do ;; OK
 ;; 'let* :let ;; OK
 ;; 'loop* :loop
 ;; 'recur :recur
-;; 'throw :throw
+;; 'throw :throw ;; Treat as a funcall
 ;; 'def :def ;; Like a funcall
 ;; 'var :var ;; Like a funcall
 ;; 'monitor-enter ;; Like a funcall
 ;; 'monitor-exit ;; Like a funcall
 ;; 'fn* :fn ;; OK
 ;; 'try :try
-;; 'catch :catch ;; TODO, remember to handle the 
+;; 'catch :catch ;; Handled by try
 ;; 'quote :quote ;; OK
 
 (defn compile-seq-sub [state x]
@@ -238,6 +287,7 @@
       (= :let sf) (compile-let state x)
       (= :do sf) (compile-do state args)
       (= :fn sf) x
+      (= :try sf) (compile-try state args)
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]

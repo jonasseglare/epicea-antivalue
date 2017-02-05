@@ -6,4 +6,5 @@
   :aot [epicea.antivalue.AntivalueException]
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [epicea/tag "0.1.0-SNAPSHOT"]
-                 [epicea/utils "0.1.0-SNAPSHOT"]])
+                 [epicea/utils "0.1.0-SNAPSHOT"]
+                 ])

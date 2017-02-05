@@ -2,138 +2,100 @@
   (:import [epicea.antivalue AntivalueException])
   (:require [clojure.test :refer :all]
             [epicea.tag.core :as tag]
-            [epicea.antivalue.core :as av]))
+            [epicea.antivalue.core :refer :all]))
 
 (defmacro compiles-identically [x]
-  `(is (= ~x (tag/value (av/compile-sub #{} ~x)))))
+  `(is (= ~x (tag/value (compile-sub init-state ~x)))))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (compiles-identically 1)
-    (compiles-identically [1 2 3])
-    (compiles-identically :a)
-    (compiles-identically 'b)
-    (compiles-identically #{1 :a 3})
-    (compiles-identically {:a 3 :b 4})
-    (compiles-identically '(1 :a 3))
-    (is (= 9 (av/unwrap (tag/tag-success 9))))
-    (try
-      (av/unwrap (tag/tag-failure 9))
-      (is false)
-      (catch AntivalueException e
-        (is (= 9 (.state e)))))
-    (is (av/compile-sub #{'a} 'a))
+(deftest primitives
+  (is (antivalue? (antivalue 3)))
+  (is (not (antivalue? 3)))
+  (compiles-identically 3)
+  (compiles-identically 'a)
+  (is (antivalue? (anti 3)))
+  (is (= 3 (anti (anti 3))))
+  (is (antivalue? (export (anti 3))))
+  (is (not (antivalue? (export 3))))
+  (is (= 3 (export (either 3 4))))
+  (is (= 4 (export (either (anti 3) 4))))
+  (is (= 3 (export (either (anti (anti 3)) 4))))
+  (is (contains? (prepare-arg (undefined 3)) :sym))
+  (is (not (contains? (prepare-arg (defined 3)) :sym)))
+  (let [[a b] (make-farg-binding (prepare-arg (undefined 3)))]
+    (is (symbol? a))
+    (is (= 3 b)))
 
-    (is (= 3 (av/either 3 9)))
-
-    ;; The call to 'av/condanti' should only work inside the av/either macro
-    (is (= 4 (av/either (av/condanti false 9 3) 4)))
-    (is (= 9 (av/either (av/condanti true 9 3) 4)))
-
-    (is (= 9 (av/either (av/anti (av/anti 9)))))
-
-    (is (= 4 (av/either (av/anti (+ (av/anti 4) 5)))))
-
-    (let [k (av/fn-with-compiled 
-              (fn [vals]
-                `(:mjao ~@vals))
-              [(av/defined 3) (av/defined 4)])]
-      (is (= [:defined '(:mjao 3 4)] k)))
-
-    (is (= [:undefined '(:mjao 3 4)]
-           (av/fn-with-compiled
-             (fn [vals]
-               `(:mjao ~@vals))
-             [(av/undefined 3) (av/defined 4)])))
-    (is (= 18 (av/either (let [a 9] (+ a a)))))
-    (is (= 4 (av/either (let [a (av/condanti false 3 9)] a) 4)))
-    (is (= 9 (av/either (let [a (av/condanti true 3 1234) b (* a a)] b) 4)))
-
-    ;; Loops are currently not compiled
-    (is (= 10 (av/either (loop [sum 0
-                                i 4]
-                           (if (= i 0)
-                             sum
-                             (recur (+ sum i) (- i 1)))))))
-
-    (is (= 129 (av/either (if (av/condanti false true true) 9 19) 129)))
-    (is (= 129 (av/either (if true (av/condanti false true true) 19) 129)))
-    (is (= 9 (av/either (if true 9 (av/condanti false true true)) 129)))
-    (is (= '(av/condanti 3) (av/either '(av/condanti 3) 9)))
-    (is (= 120 (av/either (throw (av/condanti false 3 4))
-                          120)))
-
-    (is (= 119 (av/either (try (assert false) (catch Throwable a 119)) 120)))
-    (is (= 7 (av/either (av/anti (av/condanti false 9 7)) 8)))
-    (is (= 8 (av/either (av/condanti false 9 7) 8)))
-
-    (is (= 9 (av/either (let [a (av/condanti false 7 9)]
-                          (av/either (av/anti a))))))
-
-    (is (= (av/either (let [a (av/condanti false 9 7)]
-                        (av/either [:failure (av/anti a)]
-                                   [:success a]))
-                      nil)
-           [:failure 7]))
-
-    (is (= (av/either (let [a (av/condanti true 9 7)]
-                        (av/either [:failure (av/anti a)]
-                                   [:success a]))
-                      nil)
-           [:success 9]))
-
-    (is (= 3 (av/either (av/expect number? 3) :a)))
-    (is (= :a (av/either (av/expect number? :b) :a)))
-    (is (= :a (av/either (av/expect number? :b (fn [k] [:not-a-number k])) :a)))
-    (is (= [:not-a-number :b]
-           (av/either
-            (let [a (av/expect number? :b (fn [k] [:not-a-number k]))]
-              (av/either a
-                         (av/anti a))))))
-
-    (is (= [:not-a-number :b]
-           (av/either
-            (let [a (av/expect number? :b)]
-              (av/either a
-                         [:not-a-number (av/anti a)])))))
-              
-        
-
-))
-
-(defn add-safe-0 [a b]
-  (av/either (+ (av/expect number? a)
-                (av/expect number? b))
-             :bad-input))
-
-(defn add-safe-1 [a b]
-  (av/either
-   (let [anum (av/expect number? a)
-         bnum (av/expect number? b)]
-     (av/either (+ anum bnum)
-                [:bad-a (av/anti anum)]
-                [:bad-b (av/anti bnum)]))))
-
-(defn add-safe-2 [a b]
-  (av/either
-   (let [anum (av/expect number? a)
-         bnum (av/expect number? b)]
-     (av/either [:bad-a (av/anti anum)]
-                [:bad-b (av/anti bnum)]
-                (+ anum bnum)))))
-    
-
-(deftest add-safe-test
-  (is (= 9 (add-safe-0 4 5)))
-  (is (= :bad-input (add-safe-0 4 nil)))
-  (is (= :bad-input (add-safe-0 :kattskit 5)))
-
-  (is (= 9 (add-safe-1 4 5)))
-  (is (= [:bad-a :a] (add-safe-1 :a 5)))
-  (is (= [:bad-b :b] (add-safe-1 4 :b)))
-
-  (is (= 9 (add-safe-2 4 5)))
-  (is (= [:bad-a :a] (add-safe-2 :a 5)))
-  (is (= [:bad-b :b] (add-safe-2 4 :b)))
+  (is (= [] (make-farg-binding (prepare-arg (defined 3)))))
+  (is (= 6 (export (+ 1 2 3))))
+  (let [x (export (+ (anti 1) 2 3))]
+    (is (= 1 (:data x)))
+    (is (antivalue? x)))
+  (is (antivalue? (export (import (antivalue 3)))))
+  (is (= 3 (export (if true 3 4))))
+  (is (= 4 (export (if false 3 4))))
+  (is (antivalue? (export (if (anti 9) 3 4))))
+  (is (antivalue? (export (if true (anti 3) 4))))
+  (is (= 3 (export (if true 3 (anti 4)))))
+  (is (antivalue? (export (if false 3 (anti 4)))))
+  (is (= 4 (export (if false (anti 3) 4))))
+  (is (= 4 (export (if true 4))))
+  (is (antivalue? (export (if true (anti 4)))))
+  (is (nil? (export (if false (anti 3)))))
+  (is (= '(4 1 (anti 2) 3) (export (conj '(1 (anti 2) 3) 4))))
+  (is (= 3 (export (let [] 3))))
+  (is (= 3 (export (let [a 3] a))))
+  (is (= 4 (export (let [a 3 b 1] (+ a b)))))
+  (is (= 4 (export (let [a (anti 3) b 2] (* b b)))))
+  (is (antivalue? (export (let [a (anti 3) b 2] (+ a b)))))
+  (is (= 5 (export (let [a (anti (anti 3)) b 2] (+ a b)))))
+  (is (= 5 (export (let [a (anti (anti 3)) b (anti (anti 2))] (+ a b)))))
+  (is (= 3 (export (do 1 2 3))))
+  (let [y (export (do 1 (anti 2) 3))]
+    (is (antivalue? y))
+    (is (= 2 (anti y))))
+  (is (= #{1 2 3} (export #{1 2 (either 3 4)})))
+  (is (= {:a 2 :b 6} (export {:a (either 2 3) :b (either (anti 5) 6)})))
+  (is (= (compile-try init-state '(try 1 2 3 (catch RuntimeError x (+ x 4)) (finally 5)))
+         [:defined '(try (do 1 (do 2 3)) (catch RuntimeError x (+ x 4)) (finally 5))]))
+  (is (= 1 (export (try 1))))
+  (is (= 3 (export (let [a (anti (anti 3))]
+                     (let [a (anti (anti 4))]
+                       a)
+                     a))))
+                               
 
 )
+
+
+
+
+(defn factorial [x] (export (if (= 0 x) 1 
+                                (* (expect number? x) 
+                                   (factorial (- (expect number? x) 1))))))
+
+(defn factorial-2 [x0]
+  (top
+   (let [x (expect number? x0)]
+     (either
+      (if (<= x 0) 
+        1
+        (* x (factorial-2 (- x 1))))
+      [:bad-input (anti x)]
+      nil))))
+         
+(defn factorial-loop [x]
+  (top
+   (loop [i x result 1]
+     (if (= 0 i)
+       result
+       (recur (- i 1) (* result i))))))
+
+(deftest factorial-test
+  (is (= 1 (factorial 0)))
+  (is (= (* 4 3 2) (factorial 4)))
+  (is (= 24 (factorial-2 4)))
+  (is (= [:bad-input :a] (factorial-2 :a))))
+  
+  
+;; NOT YET GOOD!
+;; 

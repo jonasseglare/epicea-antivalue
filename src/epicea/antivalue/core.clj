@@ -56,19 +56,22 @@
   (map (compile-sub state) args))
 
 (defn compile-either-sub [state args]
-  (let [[f & r] args]
+  (let [[f & r] args
+        firstval (tag/value f)]
     (if (defined? f)
-      f
+      firstval
       (if (empty? r)
-        f
-        (undefined 
-         `(let [y# ~(tag/value f)]
-            (if (antivalue? y#)
-              ~(tag/value (compile-either-sub state r))
-              y#)))))))
+        firstval
+        `(let [y# ~firstval]
+           (if (antivalue? y#)
+             ~(compile-either-sub state r)
+             y#))))))
 
 (defn compile-either [state args]
-  (dout (compile-either-sub state (compile-args state args))))
+  (let [cargs (compile-args state args)]
+    (println "############# Compiled:" cargs)
+    ((if (some defined? cargs) defined undefined)
+     (compile-either-sub state cargs))))
 
 (defn prepare-arg [arg]
   (merge
@@ -110,14 +113,20 @@
 (defn prepared-has-undefined? [x]
   (first (filter :antivalue? x)))
 
-(defn compile-fun-call [state f args0]
+(defn compile-fun-call-sub [state args0 cb]
   (let [prepared (prepare-args state args0)]
     ((if (prepared-has-undefined? prepared)
        undefined defined)
      (wrap-arg-binding
       state prepared
-      (fn [args]
-        `(~f ~@args))))))
+      cb))))
+
+(defn compile-fun-call [state f args0]
+  (compile-fun-call-sub 
+   state args0
+   (fn [args]
+     `(~f ~@args))))
+
 
 (defn compile-if [state x]
   (let [parsed (spec/conform ::macro/if-form x)]
@@ -220,6 +229,9 @@
   ([state x]
    (cond
      (seq? x) (compile-seq state x)
+     ;(map? x) (compile-map state x)
+     ;(set? x) (compile-set state x)
+     ;(vector? x) (compile-vector state x)
      :default (compile-primitive state x)))
   ([state]
    (fn [x] (compile-sub state x))))
@@ -229,7 +241,6 @@
 
 (defmacro either [& args]
   (let [c (compile-either init-state args)]
-    (println "GOT " c)
     (assert (defined? c))
     (tag/value c)))
 

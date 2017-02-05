@@ -266,8 +266,8 @@
 ;; 'if :if ; OK
 ;; 'do :do ;; OK
 ;; 'let* :let ;; OK
-;; 'loop* :loop
-;; 'recur :recur
+;; 'loop* :loop ;; OK -don't compile
+;; 'recur :recur ;; OK -don't compile
 ;; 'throw :throw ;; Treat as a funcall
 ;; 'def :def ;; Like a funcall
 ;; 'var :var ;; Like a funcall

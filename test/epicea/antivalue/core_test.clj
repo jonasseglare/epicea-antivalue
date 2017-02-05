@@ -58,6 +58,12 @@
   (is (= (compile-try init-state '(try 1 2 3 (catch RuntimeError x (+ x 4)) (finally 5)))
          [:defined '(try (do 1 (do 2 3)) (catch RuntimeError x (+ x 4)) (finally 5))]))
   (is (= 1 (export (try 1))))
+  (is (= 3 (export (let [a (anti (anti 3))]
+                     (let [a (anti (anti 4))]
+                       a)
+                     a))))
+                               
+
 )
 
 

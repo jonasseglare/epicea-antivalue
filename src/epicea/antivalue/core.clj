@@ -52,7 +52,7 @@
     (antivalue x)))
 
 (defmacro anti [& args]
-  (macro/error "'anti' called outside of context"))
+  (macro/error "'anti' called out of context. If you really need to do this, call 'anti-fn'"))
 
 (defn compile-anti [state args]
   (assert (= 1 (count args)))

@@ -138,6 +138,16 @@ Exceptions cause confusion when they escape from functions, because the result o
 
 This library emulates a very simple form of exceptions that only work locally and makes it easy to deal with all the different forms of return values from calling functions, so that we can write code which is both robust, expressive and easy to reason about.
 
+## Contribute
+I appreciate contributions to this library. You can contribute by submitting an issue or a pull request. In particular, I would need help with
+
+  * Fixing bugs
+  * Adding more unit tests
+  * Implementing support for the ```loop```-form. I would expect this to be tricky, because the call to ```recur``` must be in tail position in the generated code.
+  * Adapting it for ClojureScript
+
+Any contributor will be listed here, unless they don't want to.
+
 ## License
 
 Copyright © 2017 Jonas Östlund

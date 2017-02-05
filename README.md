@@ -16,7 +16,10 @@ Here is a small function to illustrate what the library does.
              [:missing-height (anti height)]
              nil))))
 ```
-It uses ```expect``` to validate the ```mass``` and ```height``` values in the map, and ```either``` to decide what to return. There is also a ```top``` form that surrounds everything and rewrites the code into regular clojure code.
+It uses ```expect``` to validate the ```mass``` and ```height``` values in the map, and ```either``` to decide what to return. There is also a ```top``` form that surrounds everything and rewrites the code into regular clojure code. This small examples illustrates three useful features of this library:
+  1. ```expect``` lets us validate data, and produces antivalues with invalid data.
+  2. Antivalues can be bound to symbols using ```let```, so that we can identify the reason why something failed.
+  3. ```either``` lets us choose the first expression that has a regular value, and that expression is then returned as a result from calling the function.
 
 So if we call it with approprate arguments,
 ```clojure

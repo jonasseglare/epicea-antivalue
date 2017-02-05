@@ -75,8 +75,13 @@
      {:antivalue? true
       :sym (gensym)})))
 
+(defn get-expr [arg]
+  ((if (contains? arg :sym) :sym :expr) arg))
+
 (defn first-antivalue [args]
-  `(or ~@(map (fn [arg] `(antivalue-or-nil ~(:expr arg))) (filter :antivalue? args))))
+  `(or ~@(map (fn [arg] 
+                `(antivalue-or-nil ~(:sym arg))) 
+              (filter :antivalue? args))))
 
 (defn make-farg-binding [prepared]
   (if (contains? prepared :sym)
@@ -88,7 +93,7 @@
 
 (defn wrap-arg-binding [state prepared cb]
   (let [bindings (make-farg-bindings prepared)
-        subexpr (cb (map :expr prepared))]
+        subexpr (cb (map get-expr prepared))]
     (if (empty? bindings)
       subexpr
       `(let ~bindings

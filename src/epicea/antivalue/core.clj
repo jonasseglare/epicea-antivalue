@@ -69,7 +69,6 @@
 
 (defn compile-either [state args]
   (let [cargs (compile-args state args)]
-    (println "############# Compiled:" cargs)
     ((if (some defined? cargs) defined undefined)
      (compile-either-sub state cargs))))
 
@@ -127,11 +126,19 @@
    (fn [args]
      `(~f ~@args))))
 
-(defn compile-vector [state args]
+(defn compile-coll [state c args]
   (compile-fun-call-sub
    state args
    (fn [args]
-     (into [] args))))
+     (into c args))))
+
+(defn compile-vector [state args]
+  (compile-coll state [] args))
+
+(defn compile-set [state args]
+  (compile-coll state #{} args))
+
+
 
 
 (defn compile-if [state x]
@@ -236,7 +243,7 @@
    (cond
      (seq? x) (compile-seq state x)
      ;(map? x) (compile-map state x)
-     ;(set? x) (compile-set state x)
+     (set? x) (compile-set state x)
      (vector? x) (compile-vector state x)
      :default (compile-primitive state x)))
   ([state]

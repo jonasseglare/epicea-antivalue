@@ -53,7 +53,7 @@
   (let [y (export (do 1 (anti 2) 3))]
     (is (antivalue? y))
     (is (= 2 (anti y))))
-  (is (= #{1 2 3} (export #{1 2 (expect number? 3)})))
+  (is (= #{1 2 3} (export #{1 2 (either 3 4)})))
 
 
 )

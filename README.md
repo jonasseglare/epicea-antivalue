@@ -63,23 +63,23 @@ evaluates to ```(anti 4)```.
 (either (+ (anti 4) 5)
         :failure)
 ```
-The form above will evaluate to the value ```:failure```. If we don't provide an alternative, it defaults to ```nil```, so
+The form above will evaluate to the value ```:failure```. The top-most ```either``` form must always have at least one branch that will never produce an antivalue, so this will *not* compile:
 ```clojure
 (either (+ (anti 4) 5))
 ```
-will evaluate to ```nil```.
+Instead, you will get an error at macro expansion time.
 
 Given an antivalue, we can turn it into a value again using anti:
 ```clojure
-(either (anti (anti 4)))
+(either (anti (anti 4)) nil)
 ```
 evaluates to ```4```, and 
 ```clojure
-(either (anti (+ (anti 4) 5)))
+(either (anti (+ (anti 4) 5)) nil)
 ```
 evaluates to ```4```, too.
 
-```either```, can have several branches and each branch is visited in order until we encounter a branch with a value that is not an antivalue, for instance
+```either``` can have more than two branches and each branch is visited in order until we encounter a branch with a value that is not an antivalue, for instance
 ```clojure
 (either (anti 4) (anti 5) :a :b :c (anti 6) :d)
 ```
@@ -96,7 +96,7 @@ Expressions that produce antivalues can exist inside let-bindings, e.g.
               [:bad-input :b (anti bx)]
               nil))))
 ```
-That is practical to identify the reason why we cant procede with a computation. Note that there are two ```either```. The outer ```either``` is only needed for the code transformations.
+That is practical to identify the reason why we can't procede with a computation. Note that there are two ```either```. The outer ```either``` is only needed for the code transformations.
 
 The ```expect``` macro tests if a function applied to a value is true and returns the value in that case, otherwise it produces an antivalue of that value. So the code here is equivalent to the above code.
 ```clojure

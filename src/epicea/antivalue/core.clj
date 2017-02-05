@@ -273,9 +273,9 @@
 ;; 'var :var ;; Like a funcall
 ;; 'monitor-enter ;; Like a funcall
 ;; 'monitor-exit ;; Like a funcall
-;; 'fn* :fn ;; OK
-;; 'try :try
-;; 'catch :catch ;; Handled by try
+;; 'fn* :fn ;; OK, don't descend there.
+;; 'try :try ;; OK
+;; 'catch :catch ;; OK Handled by try
 ;; 'quote :quote ;; OK
 
 (defn compile-seq-sub [state x]
@@ -287,7 +287,7 @@
       (= :let sf) (compile-let state x)
       (= :do sf) (compile-do state args)
       (= :fn sf) x
-      (= :try sf) (compile-try state args)
+      (= :try sf) (compile-try state x)
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]

@@ -71,13 +71,16 @@
       (if (<= x 0) 
         1
         (* x (factorial-2 (- x 1))))
-      [:bad-input (anti x)]))))
+      [:bad-input (anti x)]
+      :should-not-reach-this))))
          
 
 
 (deftest factorial-test
   (is (= 1 (factorial 0)))
-  (is (= (* 4 3 2) (factorial 4))))
+  (is (= (* 4 3 2) (factorial 4)))
+  (is (= 24 (factorial-2 4)))
+  (is (= [:bad-input :a] (factorial-2 :a))))
   
   
 ;; NOT YET GOOD!

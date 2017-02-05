@@ -127,6 +127,12 @@
    (fn [args]
      `(~f ~@args))))
 
+(defn compile-vector [state args]
+  (compile-fun-call-sub
+   state args
+   (fn [args]
+     (into [] args))))
+
 
 (defn compile-if [state x]
   (let [parsed (spec/conform ::macro/if-form x)]
@@ -231,7 +237,7 @@
      (seq? x) (compile-seq state x)
      ;(map? x) (compile-map state x)
      ;(set? x) (compile-set state x)
-     ;(vector? x) (compile-vector state x)
+     (vector? x) (compile-vector state x)
      :default (compile-primitive state x)))
   ([state]
    (fn [x] (compile-sub state x))))

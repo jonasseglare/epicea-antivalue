@@ -64,13 +64,13 @@
                                 (* (expect number? x) 
                                    (fak (- (expect number? x) 1))))))
 
-;; (defn factorial-2 [x0]
-;;   (either
-;;    (let [x (expect number? x0)]
-;;      (if (<= x 0) 
-;;        1
-;;        (* x (factorial-2 (- x 1)))))
-;;    :bad-input
+(defn factorial-2 [x0]
+  (either
+   (let [x (expect number? x0)]
+     (if (<= x 0) 
+       1
+       (* x (factorial-2 (- x 1)))))
+   :bad-input))
          
 
 

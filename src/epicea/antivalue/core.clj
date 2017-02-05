@@ -170,6 +170,21 @@
          undefined defined)
        (compile-do-sub state c)))))
 
+;; 'if :if ; OK
+;; 'do :do ;; OK
+;; 'let* :let ;; OK
+;; 'loop* :loop
+;; 'recur :recur
+;; 'throw :throw
+;; 'def :def
+;; 'var :var
+;; 'monitor-enter
+;; 'monitor-exit
+;; 'fn* :fn ;; OK
+;; 'try :try
+;; 'catch :catch
+;; 'quote :quote ;; OK
+
 (defn compile-seq-sub [state x]
   (let [[f & args] x
         sf (get macro/special-forms f)]
@@ -178,6 +193,7 @@
       (= :quote sf) x
       (= :let sf) (compile-let state x)
       (= :do sf) (compile-do state args)
+      (= :fn sf) x
       :default (compile-fun-call state f args))))
 
 (defn compile-import [state args]
@@ -207,3 +223,15 @@
   (let [c (compile-either init-state x)]
     (assert (defined? x))
     (tag/value c)))
+
+(defmacro top [& forms]
+  (let [c (compile-sub init-state `(do ~@forms))]
+    (if (defined? c)
+      (tag/value c)
+      (macro/error "No antivalues are allowed to reach the top"))))
+
+(defmacro expect [f x]
+  `(let [x# ~x]
+     (if (~f x#) x# (anti x#))))
+
+;; (macroexpand '(export (+ (anti 3))))

@@ -339,4 +339,7 @@
   `(let [x# ~x]
      (if (~f x#) x# (anti x#))))
 
+(defmacro unwrap [x]
+  `(tag/value (expect tag/success? ~x)))
+
 ;; (macroexpand '(export (+ (anti 3))))

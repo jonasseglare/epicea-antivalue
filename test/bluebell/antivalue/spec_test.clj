@@ -1,8 +1,8 @@
-(ns epicea.antivalue.spec
+(ns bluebell.antivalue.spec
   (:require [clojure.test :refer :all]
-            [epicea.antivalue.spec :as avspec]
+            [bluebell.antivalue.spec :as avspec]
             [clojure.spec :as spec]
-            [epicea.antivalue.core :as av]))
+            [bluebell.antivalue.core :as av]))
 
 (spec/def ::re number?)
 (spec/def ::im number?)

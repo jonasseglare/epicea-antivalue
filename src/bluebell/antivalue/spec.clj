@@ -1,5 +1,5 @@
-(ns epicea.antivalue.spec
-  (:require [epicea.antivalue.core :as av]
+(ns bluebell.antivalue.spec
+  (:require [bluebell.antivalue.core :as av]
             [clojure.spec :as spec]))
 
 (defmacro conform [sp x]

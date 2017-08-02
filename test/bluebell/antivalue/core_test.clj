@@ -1,7 +1,7 @@
-(ns epicea.antivalue.core-test
+(ns bluebell.antivalue.core-test
   (:require [clojure.test :refer :all]
-            [epicea.tag.core :as tag]
-            [epicea.antivalue.core :refer :all]))
+            [bluebell.tag.core :as tag]
+            [bluebell.antivalue.core :refer :all]))
 
 (defmacro compiles-identically [x]
   `(is (= ~x (tag/value (compile-sub init-state ~x)))))

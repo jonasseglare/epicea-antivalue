@@ -1,8 +1,8 @@
-(ns epicea.antivalue.core
-  (:require [epicea.tag.core :as tag]
+(ns bluebell.antivalue.core
+  (:require [bluebell.tag.core :as tag]
             [clojure.spec :as spec]
-            [epicea.utils.macro :as macro]
-            [epicea.utils.debug :refer [dout]]))
+            [bluebell.utils.macro :as macro]
+            [bluebell.utils.debug :refer [dout]]))
 
 (declare compile-sub)
 (def defined (tag/tag :defined))

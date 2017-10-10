@@ -1,6 +1,6 @@
 (ns bluebell.antivalue.core
   (:require [bluebell.tag.core :as tag]
-            [clojure.spec :as spec]
+            [clojure.spec.alpha :as spec]
             [bluebell.utils.macro :as macro]
             [bluebell.utils.debug :refer [dout]]))
 

@@ -1,7 +1,7 @@
 (ns bluebell.antivalue.spec
   (:require [clojure.test :refer :all]
             [bluebell.antivalue.spec :as avspec]
-            [clojure.spec :as spec]
+            [clojure.spec.alpha :as spec]
             [bluebell.antivalue.core :as av]))
 
 (spec/def ::re number?)
